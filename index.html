@@ -1,0 +1,1094 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Turtle Island Card Game</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preload" as="image" href="cardback.jpg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Alegreya+Sans:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: a night-time council ground. Pack scene up top, the collection longhouse below, crafting at the end. Single deliberate dark look. */
+:root{
+  --night:#0f1820; --panel:#172430; --panel2:#203140; --line:#34495b;
+  --shell:#f4ecdc; --shell2:#e8dcc6; --ink:#241509; --muted:#b9ad98;
+  --gold:#d2a961; --gold-hi:#f0d394; --gold-dk:#a57a3a; --wampum:#4b2c63; --wampum-hi:#7b55a0;
+  --leg:#b98a2e; --rare:#6f4a94; --unc:#2f6a9e; --com:#3f7350;
+  --good:#7fc48f; --bad:#e8907a;
+  --display:'Cinzel', 'Trajan Pro', Georgia, serif;
+  --body:'Alegreya Sans', 'Segoe UI', system-ui, sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--night)}
+body{color:var(--shell);font-family:var(--body);font-size:16px;line-height:1.45;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.card:focus-visible{outline:3px solid var(--gold-hi);outline-offset:3px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+
+/* top bar */
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;flex-direction:column}
+.brand .eyebrow{font-size:12px;letter-spacing:3px;font-weight:800;color:var(--gold)}
+.brand h1{font-family:var(--display);font-weight:900;font-size:clamp(28px,5vw,42px);margin:0;line-height:1.05;letter-spacing:1px;text-wrap:balance}
+.stats{display:flex;flex-wrap:wrap;gap:10px}
+.stat{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 14px}
+.stat b{font-family:var(--display);font-size:22px;color:var(--gold-hi);font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted);letter-spacing:1px;font-weight:700}
+
+.bead-band{height:14px;background:repeating-linear-gradient(90deg,var(--wampum) 0 10px,var(--shell) 10px 14px,var(--wampum) 14px 24px);border-radius:3px;opacity:.9}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+.set-prog{display:flex;flex-direction:column;gap:6px;max-width:520px}
+.set-top{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:800;letter-spacing:1.5px;color:var(--gold)}
+.set-top b{color:var(--shell);letter-spacing:0;font-variant-numeric:tabular-nums}
+@media (max-width:820px){.hero{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel h2{font-family:var(--display);font-weight:700;font-size:20px;margin:0;letter-spacing:2px;color:var(--gold-hi)}
+.panel p{margin:0;color:var(--muted);max-width:60ch}
+.scene-wrap{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#121a30;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.scene-wrap svg{display:block;width:100%;height:auto;aspect-ratio:1000/720}
+@media (max-width:640px){.scene-wrap svg{aspect-ratio:1/1.08}.plaques{display:none}}
+.scene-wrap{touch-action:pan-y;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.scene-wrap svg,.scene-wrap svg *{outline:none}
+.bob{animation:bob 5s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-9px)}}
+.shineMove{animation:shine 6.5s ease-in-out infinite}
+@keyframes shine{0%{transform:translateX(0)}40%,100%{transform:translateX(1150px)}}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:flick .8s ease-in-out infinite alternate}
+.flame.f2{animation-duration:1.1s}.flame.f3{animation-duration:.65s}
+@keyframes flick{0%{transform:scale(1,1) skewX(0)}50%{transform:scale(.92,1.08) skewX(3deg)}100%{transform:scale(1.04,.94) skewX(-3deg)}}
+.ember{animation:rise 3s linear infinite;opacity:0}
+@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-140px);opacity:0}}
+#sealTop{transform-box:fill-box;transform-origin:50% 50%;transition:transform .7s cubic-bezier(.3,.7,.3,1),opacity .7s}
+.torn #sealTop{transform:translate(60px,-190px) rotate(-16deg);opacity:0}
+#fan{transition:transform .7s cubic-bezier(.3,.7,.3,1)}
+.torn #fan{transform:translateY(-80px)}
+.dragging #packG,.tearing #packG{animation-play-state:paused}
+#stripG{transform-box:fill-box;transform-origin:50% 50%;transition:transform .85s cubic-bezier(.3,.7,.3,1),opacity .85s}
+.ripped #stripG{transform:translate(var(--fx,120px),-270px) rotate(var(--fr,-25deg));opacity:0}
+#peek{transition:transform .75s cubic-bezier(.2,.8,.2,1) .12s}
+.ripped #peek{transform:translateY(-135px)}
+.noanim *{transition:none!important}
+#hint{transition:opacity .3s}
+.tearing #hint,.ripped #hint,.nopacks #hint{opacity:0}
+.hintArrow{animation:hintMove 2.4s ease-in-out infinite}
+@keyframes hintMove{0%{transform:translateX(0);opacity:0}15%{opacity:1}80%{opacity:1}100%{transform:translateX(250px);opacity:0}}
+.plq{cursor:pointer;outline:none}
+.plq .plq-in{transition:transform .15s}
+.plq:hover .plq-in{transform:translateY(-3px)}
+.plq:hover rect[stroke]{stroke:#f0d394}
+.plq:focus-visible rect[stroke]{stroke:#fff6dd;stroke-width:3}
+.scene-actions{display:none;gap:10px;padding:12px;background:#120d0a;border-top:1px solid var(--line)}
+@media (max-width:640px){.scene-actions{display:flex}.scene-actions .btn{flex:1}}
+.album{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;align-items:start}
+.album .slot{min-height:200px}
+.album .card .cap{display:none}
+.sv-list{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.sv-row{display:flex;align-items:center;gap:12px;background:var(--panel2);border-radius:10px;padding:8px 10px;min-height:52px}
+.sv-thumb{width:46px;height:46px;flex-shrink:0;border-radius:6px;overflow:hidden;border:2px solid var(--rc)}
+.sv-thumb img{width:100%;height:100%;display:block;object-fit:cover}
+.sv-thumb.miss{background:#0f1820;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;color:var(--line);font-size:18px}
+.sv-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.sv-main b{font-size:15px}
+.sv-main small{font-size:12px;color:var(--muted);letter-spacing:1px;font-weight:700}
+.sv-st{font-size:12px;font-weight:800;letter-spacing:1px;white-space:nowrap}
+.sv-st.ok{color:var(--good)}.sv-st.lk{color:var(--gold-hi)}.sv-st.ms{color:var(--muted)}
+.sv-row .btn{padding:6px 12px;min-height:38px;font-size:13px}
+.sv-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.sv-head .meter{flex:1;min-width:180px}
+.badge-big{display:flex;gap:16px;align-items:center;background:var(--wampum);border:2px solid var(--gold);border-radius:12px;padding:14px 16px;flex-wrap:wrap}
+.badge-big p{margin:0;color:var(--shell2);flex:1;min-width:180px}
+.badge-big.locked{background:var(--panel2);border-color:var(--line);opacity:.85}
+.pulse{animation:pulseSec 1.4s ease-out}
+@keyframes pulseSec{0%{box-shadow:0 0 0 0 rgba(240,211,148,.7)}100%{box-shadow:0 0 0 22px rgba(240,211,148,0)}}
+.series{display:flex;flex-direction:column;gap:8px}
+.series-l{font-size:12px;font-weight:800;letter-spacing:3px;color:var(--gold)}
+.series-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:8px 14px;min-height:44px;text-align:left}
+.chip:hover{border-color:var(--gold)}
+.chip[aria-pressed="true"]{background:var(--wampum);border-color:var(--gold-hi)}
+.chip small{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--gold)}
+.chip b{font-family:var(--display);font-size:14px;font-weight:700;white-space:nowrap}
+.chip span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"] span{color:var(--shell2)}
+.stat-pts{border-color:var(--gold-dk);position:relative}
+.stat-pts b{color:var(--gold-hi)}
+.stat-pts.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.12)}}
+.ptsfly{position:absolute;right:8px;top:-6px;font-weight:800;color:var(--good);font-size:16px;pointer-events:none;animation:fly 1.3s ease-out forwards}
+@keyframes fly{0%{opacity:0;transform:translateY(8px)}15%{opacity:1}100%{opacity:0;transform:translateY(-34px)}}
+.shop{display:flex;flex-direction:column;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;max-width:520px}
+.shop-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;font-weight:800;letter-spacing:1.5px;color:var(--gold)}
+.shop-head b{color:var(--shell);letter-spacing:0;font-size:15px;font-variant-numeric:tabular-nums}
+.shop-row{display:flex;gap:10px;flex-wrap:wrap}
+.buy{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left}
+.buy:disabled{border:1.5px dashed var(--line);background:transparent}
+.buy small{font-size:12px;font-weight:700;letter-spacing:0;opacity:.8}
+.howpts summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--gold-hi);min-height:32px;display:flex;align-items:center}
+.howpts ul{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.howpts b{color:var(--shell)}
+.fb .pts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.fb .pts span{background:rgba(127,196,143,.18);border:1px solid rgba(127,196,143,.45);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700}
+.pack-row{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.pack{width:170px;flex-shrink:0;background:var(--gold);border-left:3px solid var(--gold-dk);border-right:3px solid var(--gold-dk);display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0 14px;position:relative;color:var(--ink);transition:transform .25s}
+.pack::before,.pack::after{content:"";position:absolute;left:-3px;right:-3px;height:12px;background:repeating-linear-gradient(90deg,var(--gold-dk) 0 5px,transparent 5px 10px)}
+.pack::before{top:-12px}.pack::after{bottom:-12px}
+.pack .pt{font-family:var(--display);font-weight:900;font-size:22px;line-height:1;text-align:center}
+.pack .ps{font-size:10px;font-weight:800;letter-spacing:2px;background:var(--ink);color:var(--gold-hi);padding:3px 8px;border-radius:3px}
+.pack .bb{align-self:stretch;height:10px;background:repeating-linear-gradient(90deg,var(--wampum) 0 8px,var(--shell) 8px 11px)}
+.pack.shake{animation:shake .5s}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+.pack-side{display:flex;flex-direction:column;gap:12px;flex:1;min-width:200px}
+.btn{background:var(--gold);color:var(--ink);border:0;border-radius:10px;padding:12px 18px;font-weight:800;letter-spacing:1px;font-size:15px;min-height:44px}
+.btn:hover{background:var(--gold-hi)}
+.btn:disabled{background:var(--panel2);color:var(--muted);cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--shell);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--gold)}
+.odds{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.odds i{font-style:normal;font-weight:800}
+
+.tree-wrap{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
+.tree-wrap svg{width:200px;max-width:100%;height:auto;flex-shrink:0}
+.tree-info{flex:1;min-width:180px;display:flex;flex-direction:column;gap:10px}
+.meter{height:12px;background:var(--panel2);border-radius:99px;overflow:hidden}
+.meter div{height:100%;background:var(--good);border-radius:99px;transition:width .6s}
+.tier{transition:opacity .6s, transform .6s;transform-origin:100px 230px}
+
+/* collection */
+.section-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.section-head h2{font-family:var(--display);font-size:24px;margin:0;letter-spacing:2px}
+.section-head span{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+
+.card{border-radius:12px;padding:6px;background:var(--rc);display:block;width:100%;text-align:left;border:0;position:relative}
+.card .ci{background:var(--shell);color:#2a241e;border-radius:7px;overflow:hidden;display:flex;flex-direction:column;height:100%}
+.card .ch{background:#1d1a17;color:var(--shell);display:flex;gap:8px;align-items:center;padding:7px 10px}
+.card .num{width:22px;height:22px;flex-shrink:0;border-radius:50%;background:var(--rc);border:2px solid var(--gold-hi);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:var(--rtx)}
+.card .cn{font-family:var(--display);font-weight:700;font-size:14px;line-height:1.1}
+.card .ct{font-size:9.5px;letter-spacing:1.5px;font-weight:700;color:#d8c8a8}
+.card .art{aspect-ratio:4/3;overflow:hidden;position:relative}
+.card .art img{display:block;width:100%;height:100%;max-width:none}
+.card .cap{display:block;font-size:10.5px;line-height:1.3;color:#5a4c3c;padding:5px 10px;background:#ece3d2;border-top:1px solid #d8ccb2}
+.card .cap b{color:#2a241e}
+.credits{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 18px;font-size:13px;color:var(--muted);margin:0;padding:0;list-style:none}
+.credits a{color:var(--gold-hi)}
+.credits b{color:var(--shell);font-weight:700}
+.card .rs{display:flex;justify-content:space-between;background:var(--rc);color:var(--rtx);font-size:10px;font-weight:800;letter-spacing:1.5px;padding:4px 10px}
+.card .fact{padding:10px 12px;font-size:14px;line-height:1.4}
+.r-leg{--rc:var(--leg);--rtx:var(--ink);--rt:#f3e3bd;--rl:#7a5a14}
+.r-rare{--rc:var(--rare);--rtx:#fff;--rt:#e8dcf0;--rl:#5b3a78}
+.r-unc{--rc:var(--unc);--rtx:#fff;--rt:#dbe7f2;--rl:#2f5f8a}
+.r-com{--rc:var(--com);--rtx:#fff;--rt:#dce9dc;--rl:#3f6b4a}
+.card.locked .art{filter:grayscale(1) brightness(.55)}
+.card .lockbar{position:absolute;left:6px;right:6px;bottom:6px;background:rgba(20,16,12,.9);color:var(--gold-hi);text-align:center;font-weight:800;font-size:13px;letter-spacing:1px;padding:10px;border-radius:0 0 7px 7px}
+.slot{border:2px dashed var(--line);border-radius:12px;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted);padding:12px;text-align:center}
+.slot b{font-family:var(--display);font-size:34px;color:var(--panel2)}
+.slot span{font-size:13px;font-weight:700;letter-spacing:1px}
+.card.unl{cursor:pointer;transition:transform .2s}
+.card.unl:hover{transform:translateY(-4px)}
+
+/* craft */
+.craft{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--panel2);border-radius:10px;padding:10px 12px}
+.crow .nm{font-weight:700}
+.crow small{display:block;color:var(--muted);font-size:12px;letter-spacing:1px;font-weight:700}
+.crow .btn{padding:8px 12px;font-size:13px;min-height:40px}
+.empty{color:var(--muted)}
+
+/* overlay */
+.ov{position:fixed;inset:0;background:rgba(6,10,14,.82);display:flex;align-items:center;justify-content:center;padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));z-index:50;overflow-y:auto}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;width:min(900px,100%);display:flex;flex-direction:column;gap:16px;max-height:100%;overflow-y:auto}
+.box:focus{outline:none}
+.box h3{font-family:var(--display);font-size:22px;margin:0;color:var(--gold-hi);letter-spacing:1px}
+.reveal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}
+@media (max-width:700px){.reveal{grid-template-columns:minmax(0,1fr)}.reveal .rv{max-width:270px;margin:0 auto;width:100%}}
+.rv .flip{background:none;border:0;padding:0;width:100%;display:block}
+.flip{perspective:1100px}
+.flip .inner{position:relative;transition:transform .75s cubic-bezier(.3,.8,.3,1);transform-style:preserve-3d;display:grid}
+.flip.open .inner{transform:rotateY(180deg)}
+.flip .face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:block}
+.flip .front{transform:rotateY(180deg)}
+.back{border-radius:14px;background:#5a3a1e url("cardback.jpg") center/cover no-repeat;min-height:100%;box-shadow:0 14px 30px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.18);position:relative;overflow:hidden}
+.back::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,240,200,.28) 48%,transparent 66%);background-size:250% 100%;animation:holo 3.5s ease-in-out infinite}
+.bk-in{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(20,10,30,.55);border:2px solid var(--gold-hi);border-radius:10px;padding:16px 10px;width:78%}
+.bk-in svg{height:auto}
+.bk-t{font-family:var(--display);font-weight:900;font-size:16px;letter-spacing:2px;color:var(--gold-hi)}
+.bk-s{font-size:10px;font-weight:800;letter-spacing:3px;color:var(--shell2)}
+
+.bc{position:relative;border-radius:14px;text-align:left}
+.bc-halo{position:absolute;inset:-14px;border-radius:24px;background:radial-gradient(closest-side,rgba(255,206,110,.75),rgba(255,180,80,0));filter:blur(6px);animation:halo 2.4s ease-in-out infinite;z-index:0}
+@keyframes halo{50%{opacity:.45;transform:scale(.97)}}
+.bc-frame{position:relative;z-index:1;border-radius:14px;padding:7px;background:linear-gradient(135deg,var(--rc) 0%,color-mix(in srgb,var(--rc) 55%,#fff) 30%,var(--rc) 55%,color-mix(in srgb,var(--rc) 70%,#000) 100%);box-shadow:0 16px 34px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.25)}
+.bc-leg .bc-frame{background:linear-gradient(135deg,#7a5418,#f6dc9c 22%,#b98a2e 45%,#fff0c4 62%,#a5782f 80%,#5e3f1a)}
+.bc-in{background:#f6efe1;color:#2a241e;border-radius:9px;overflow:hidden;display:flex;flex-direction:column;border:2px solid rgba(0,0,0,.25)}
+.bc-head{display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(#26211c,#15120f);color:#f6efe1;border-bottom:3px solid var(--rc)}
+.bc-num{width:26px;height:26px;flex-shrink:0;border-radius:50%;background:var(--rc);border:2px solid #f0d394;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:var(--rtx)}
+.bc-names{display:flex;flex-direction:column;min-width:0;flex:1}
+.bc-name{font-family:var(--display);font-weight:700;font-size:15px;line-height:1.1;text-wrap:balance}
+.bc-type{font-size:9.5px;letter-spacing:1.5px;font-weight:700;color:#d8c8a8;margin-top:2px}
+.bc-gem{width:14px;height:14px;flex-shrink:0;transform:rotate(45deg);background:var(--rc);border:2px solid #f0d394;box-shadow:0 0 8px var(--rc)}
+.bc-art{position:relative;aspect-ratio:4/3;overflow:hidden;border-bottom:1px solid rgba(0,0,0,.2)}
+.bc-art img{display:block;width:100%;height:100%;max-width:none}
+.bc-holo{position:absolute;inset:0;background:linear-gradient(115deg,transparent 25%,rgba(255,255,255,.55) 45%,rgba(255,220,150,.35) 50%,rgba(160,220,255,.3) 55%,transparent 75%);background-size:250% 100%;mix-blend-mode:overlay;animation:holo 3s ease-in-out infinite}
+.bc-rare .bc-holo{background:linear-gradient(115deg,transparent 30%,rgba(230,200,255,.45) 48%,rgba(255,255,255,.35) 52%,transparent 70%);background-size:250% 100%}
+@keyframes holo{0%{background-position:120% 0}60%,100%{background-position:-60% 0}}
+.bc-badge{position:absolute;top:8px;right:-30px;transform:rotate(35deg);width:110px;text-align:center;font-size:10px;font-weight:800;letter-spacing:2px;padding:3px 0;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.bc-badge.new{background:#7fc48f;color:#10261a}
+.bc-badge.dup{background:#f0d394;color:#241509}
+.bc-cap{font-size:10.5px;line-height:1.3;color:#5a4c3c;padding:5px 10px;background:#ece3d2;border-bottom:1px solid #d8ccb2}
+.bc-stats{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #d8ccb2}
+.bc-stats div{display:flex;flex-direction:column;gap:1px;padding:6px 10px}
+.bc-stats div+div{border-left:1px solid #d8ccb2}
+.bc-stats span{font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--rl)}
+.bc-stats b{font-size:12.5px;line-height:1.2}
+.bc-lore{margin:0;padding:8px 10px 10px;font-size:13px;line-height:1.35;font-style:italic;color:#3a3028}
+.bc-foot{display:flex;justify-content:space-between;align-items:center;gap:6px;background:var(--rc);color:var(--rtx);font-size:9.5px;font-weight:800;letter-spacing:1px;padding:5px 10px;margin-top:auto}
+.bc-rar i{font-style:normal;letter-spacing:0}
+.flip.open .bc-leg .bc-frame{animation:pop .5s .45s both}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.05)}100%{transform:scale(1)}}
+.tag{margin-top:10px;text-align:center;font-weight:800;font-size:13px;letter-spacing:1px}
+.tag.new{color:var(--good)}.tag.dup{color:var(--gold-hi)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+
+.quiz{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:560px){.quiz{grid-template-columns:minmax(0,1fr)}.quiz .card{max-width:220px}}
+.q{font-size:19px;font-weight:700;margin:0;text-wrap:balance}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;text-align:left;min-height:44px;font-size:16px}
+.opt:hover:not(:disabled){border-color:var(--gold)}
+.opt.right{border-color:var(--good);background:#1f3a2a}
+.opt.wrong{border-color:var(--bad);background:#3a2420}
+.opt:disabled{cursor:default}
+.fb{border-radius:10px;padding:12px 14px;font-size:15px}
+.fb.good{background:#1f3a2a;color:#d6efd9}
+.fb.bad{background:#3a2420;color:#f5d8cf}
+.fb b{display:block;margin-bottom:4px}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--shell);color:var(--ink);font-weight:700;padding:10px 18px;border-radius:999px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:calc(100% - 32px);text-align:center}
+.done{background:var(--wampum);border:2px solid var(--gold);border-radius:14px;padding:18px 22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.done h2{font-family:var(--display);margin:0;font-size:22px;color:var(--gold-hi)}
+.done p{margin:0;color:var(--shell2)}
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<style>html,body{margin:0}body{font-family:system-ui,sans-serif}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="eyebrow" id="eyebrow">SERIES 1 · CHIEFS, LANDS &amp; LEGENDS</span><h1>Turtle Island</h1></div>
+    <div class="stats" aria-live="polite">
+      <div class="stat stat-pts" id="ptsStat"><b id="sPoints">0</b><span>POINTS</span></div>
+      <div class="stat"><b id="sPacks">0</b><span>PACKS</span></div>
+      <div class="stat"><b id="sBeads">0</b><span>WAMPUM BEADS</span></div>
+      <div class="stat"><b id="sSet">0/14</b><span>UNLOCKED</span></div>
+    </div>
+  </header>
+  <div class="bead-band" aria-hidden="true"></div>
+  <nav class="series" aria-label="Choose a series"><span class="series-l">CHOOSE A SERIES</span><div class="series-row" id="seriesRow"></div></nav>
+
+  <div id="doneBanner" hidden></div>
+
+  <section class="scene-wrap" id="sceneWrap">
+    <svg id="scene" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid slice" role="img" aria-label="The gold foil Turtle Island collectible pack at sunset beside a longhouse and campfire"></svg>
+    <div class="scene-actions"><button class="btn ghost" type="button" data-act="collection">My collection</button><button class="btn ghost" type="button" data-act="setview">Complete the set</button></div>
+  </section>
+
+  <section class="hero">
+    <div class="panel">
+      <h2>COLLECT</h2>
+      <div class="pack-row">
+        <div class="pack-side">
+          <p>Swipe across the top of the pack to rip it open, or tap it. Each pack holds 3 cards. New cards arrive locked. Answer a card's question to unlock it and earn points, then spend your points on more packs.</p>
+          <button class="btn" id="openBtn">Open a pack</button>
+          <div class="shop" aria-label="Pack shop">
+            <div class="shop-head"><span>PACK SHOP</span><b><span id="shopPts">0</span> points</b></div>
+            <div class="shop-row">
+              <button class="btn buy" type="button" data-act="buy" data-n="1"><span>1 pack</span><small>40 points</small></button>
+              <button class="btn buy" type="button" data-act="buy" data-n="3"><span>3 packs</span><small>100 points &middot; save 20</small></button>
+            </div>
+            <details class="howpts"><summary>How to earn points</summary>
+              <ul>
+                <li><b>Unlock a card:</b> common 10, uncommon 15, rare 25, legendary 50</li>
+                <li><b>First try:</b> +5 when you answer right the first time</li>
+                <li><b>Streak:</b> +5 for each right answer in a row, up to +20</li>
+                <li><b>Doubles:</b> +5 points and wampum beads</li>
+                <li><b>Complete a series:</b> +100 bonus</li>
+              </ul>
+            </details>
+          </div>
+          <div class="set-prog"><div class="set-top"><span>COMPLETE THE SET</span><b id="setLabel">0 of 12</b></div><div class="meter" aria-hidden="true"><div id="meter" style="width:0"></div></div></div>
+          <div class="odds"><span><i style="color:#e3b85a">Legendary</i> 8%</span><span><i style="color:#b996dc">Rare</i> 22%</span><span><i style="color:#86b6e2">Uncommon</i> 30%</span><span><i style="color:#93c99f">Common</i> 40%</span></div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div class="section-head"><h2>Your Longhouse</h2><span>Tap an unlocked card to read its teaching</span></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="panel">
+    <h2>CRAFT &amp; TRADE</h2>
+    <p>Doubles turn into wampum beads. Trade your beads to craft a card you are missing. Crafted cards still need their question answered.</p>
+    <div class="craft" id="craft"></div>
+  </section>
+
+  <section class="panel">
+    <h2>PICTURE CREDITS</h2>
+    <p>Every picture is a real museum piece shared free for anyone to use (public domain, CC0). Tap a link to see it at the museum.</p>
+    <ul class="credits" id="credits"></ul>
+  </section>
+
+  <footer class="foot">
+    <span>Legends are told differently by each Nation and storyteller. Invite a local Knowledge Keeper to share more.</span>
+    <span style="display:inline-flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn ghost" id="soundBtn" type="button" aria-pressed="true" style="min-height:40px;padding:8px 14px;font-size:13px">Sound: on</button><span id="resetWrap"><button class="btn ghost" id="resetBtn" style="min-height:40px;padding:8px 14px;font-size:13px">Start over</button></span></span>
+  </footer>
+</div>
+
+<div class="ov" id="ov" hidden role="dialog" aria-modal="true" aria-labelledby="ovTitle"><div class="box" id="box"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const PIC = {"1": {"src": "cards/c1.jpg", "fit": "contain", "bg": "#9e9e9e", "obj": "Snapping turtle rattle", "from_": "Haudenosaunee, 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/500889"}, "2": {"src": "cards/c2.jpg", "fit": "contain", "bg": "#cbcbcb", "obj": "Quilled belt pouch", "from_": "Haudenosaunee, ca. 1800", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/751506"}, "3": {"src": "cards/c3.jpg", "fit": "contain", "bg": "#696965", "obj": "Beaded Glengarry cap", "from_": "Haudenosaunee, ca. 1880", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319023"}, "4": {"src": "cards/c4.jpg", "fit": "contain", "bg": "#fcf6f5", "obj": "Beaded bag", "from_": "Cree or Métis, 1850–1900", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1956.831"}, "5": {"src": "cards/c5.jpg", "fit": "contain", "bg": "#7a7b75", "obj": "Bandolier bag", "from_": "Anishinaabe, 1880s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1982.61"}, "6": {"src": "cards/c6.jpg", "fit": "cover", "bg": "#564e44", "obj": "Niagara rapids", "from_": "Photograph, 1880s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1994.80"}, "7": {"src": "cards/c7.jpg", "fit": "contain", "bg": "#cacbd0", "obj": "Beaded vest", "from_": "Blackfeet, ca. 1900", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1937.768"}, "8": {"src": "cards/c8.jpg", "fit": "contain", "bg": "#a4a4a3", "obj": "Carved paddle", "from_": "Haudenosaunee, 1850–75", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319185"}, "9": {"src": "cards/c9.jpg", "fit": "cover", "bg": "#705f4d", "obj": "Falls of Niagara", "from_": "Photograph, Canada, 1860s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1993.25"}, "10": {"src": "cards/c10.jpg", "fit": "contain", "bg": "#6a696a", "obj": "Carved wooden bowl", "from_": "Northeastern Woodlands, early 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1984.12"}, "11": {"src": "cards/c11.jpg", "fit": "contain", "bg": "#848482", "obj": "Cradleboard", "from_": "Mohawk, ca. 1860", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319101"}, "12": {"src": "cards/c12.jpg", "fit": "contain", "bg": "#969695", "obj": "Ash splint basket", "from_": "Haudenosaunee, ca. 1840", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319011"}, "13": {"src": "cards/nmet751498.jpg", "fit": "contain", "bg": "#a09e9c", "obj": "Carved bowl", "from_": "Wendat, ca. 1700", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/751498"}, "14": {"src": "cards/ncma155915.jpg", "fit": "contain", "bg": "#898889", "obj": "Ball-headed war club", "from_": "Anishinaabe, late 1700s–early 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1991.21"}, "15": {"src": "cards/nmet12614.jpg", "fit": "cover", "bg": "#eaeaea", "obj": "Cohoes Falls on the Mohawk River", "from_": "Watercolour, early 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/12614"}, "16": {"src": "cards/ncma149427.jpg", "fit": "contain", "bg": "#676667", "obj": "Stamped splint basket", "from_": "Algonquian or Haudenosaunee, early 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1978.77"}, "17": {"src": "cards/nmet319126.jpg", "fit": "contain", "bg": "#aaaaaa", "obj": "Pair of moccasins", "from_": "Seneca, ca. 1830", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319126"}, "18": {"src": "cards/nmet319219.jpg", "fit": "contain", "bg": "#989896", "obj": "Pair of moccasins", "from_": "Seneca, ca. 1808", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319219"}, "19": {"src": "cards/ncma134331.jpg", "fit": "contain", "bg": "#b8b6b9", "obj": "Beaded cuff", "from_": "Anishinaabe or Cree, late 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1956.788.2"}, "20": {"src": "cards/nmet12752.jpg", "fit": "cover", "bg": "#9e9e9e", "obj": "A town on the Mohawk River", "from_": "Watercolour, 1811–13", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/12752"}, "21": {"src": "cards/nmet319024.jpg", "fit": "contain", "bg": "#cccdcd", "obj": "Glengarry-style cap", "from_": "Wendat, ca. 1840", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319024"}, "22": {"src": "cards/nmet319022.jpg", "fit": "contain", "bg": "#93979a", "obj": "Embroidered moccasins", "from_": "Wendat, 1790–1815", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319022"}, "23": {"src": "cards/nmet751500.jpg", "fit": "contain", "bg": "#9f9f9f", "obj": "Finger-woven sash", "from_": "Wendat, ca. 1830", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/751500"}, "24": {"src": "cards/nmet320848.jpg", "fit": "contain", "bg": "#c6c6bf", "obj": "Beaded pincushion", "from_": "Wendat, 1820s–30s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/320848"}, "25": {"src": "cards/nmet319225.jpg", "fit": "contain", "bg": "#d1d1d1", "obj": "Letter case", "from_": "Wendat, 1835–40", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319225"}, "26": {"src": "cards/nmet319020.jpg", "fit": "contain", "bg": "#727271", "obj": "Pincushion", "from_": "Wendat, mid-1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319020"}, "27": {"src": "cards/nmet105510.jpg", "fit": "contain", "bg": "#a49d98", "obj": "Shoes", "from_": "Wendat, 1830–40", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/105510"}, "28": {"src": "cards/nmet504408.jpg", "fit": "contain", "bg": "#616764", "obj": "Turtle rattle", "from_": "Haudenosaunee, 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/504408"}, "29": {"src": "cards/nmet319224.jpg", "fit": "contain", "bg": "#8a8d8d", "obj": "Canoe model with dolls", "from_": "Mi’kmaq, ca. 1860", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319224"}, "30": {"src": "cards/nmet502020.jpg", "fit": "contain", "bg": "#848484", "obj": "Drum or container", "from_": "Mi’kmaq, late 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/502020"}, "31": {"src": "cards/nmet319123.jpg", "fit": "contain", "bg": "#6e6f6d", "obj": "Quillwork trunk", "from_": "Mi’kmaq, 1840–50", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319123"}, "32": {"src": "cards/nmet501198.jpg", "fit": "contain", "bg": "#999999", "obj": "Rattle", "from_": "Abenaki or Penobscot, 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/501198"}, "33": {"src": "cards/nmet319120.jpg", "fit": "contain", "bg": "#999999", "obj": "Quillwork box", "from_": "Mi’kmaq, 1840–50", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319120"}, "34": {"src": "cards/nmet319019.jpg", "fit": "contain", "bg": "#aaaaaa", "obj": "Bible marker", "from_": "Wolastoqiyik, mid-1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319019"}, "35": {"src": "cards/nmet501312.jpg", "fit": "contain", "bg": "#5d6877", "obj": "Bark moose call", "from_": "Mi’kmaq, 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/501312"}, "36": {"src": "cards/nmet319121.jpg", "fit": "contain", "bg": "#a1a1a1", "obj": "Beaded bag", "from_": "Mi’kmaq or Haudenosaunee, 1800–1820", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319121"}, "37": {"src": "cards/nmet319067.jpg", "fit": "contain", "bg": "#acaaab", "obj": "Lidded storage basket", "from_": "Peskotomuhkati, ca. 1840", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319067"}, "38": {"src": "cards/nmet319118.jpg", "fit": "contain", "bg": "#bdbdba", "obj": "Dollhouse chair", "from_": "Mi’kmaq, ca. 1860", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319118"}, "39": {"src": "cards/nmet319021.jpg", "fit": "contain", "bg": "#9d9e9e", "obj": "Canoe model", "from_": "Wolastoqiyik, before 1845", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319021"}, "40": {"src": "cards/nmet319217.jpg", "fit": "contain", "bg": "#9f9f9b", "obj": "Quillwork box", "from_": "Mi’kmaq, 1820s–30s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319217"}, "41": {"src": "cards/nmet319131.jpg", "fit": "contain", "bg": "#b8b8b8", "obj": "Quillwork chair seat", "from_": "Mi’kmaq, mid-1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319131"}, "42": {"src": "cards/nmet319117.jpg", "fit": "contain", "bg": "#afafaf", "obj": "Carved belt cup", "from_": "Penobscot or Peskotomuhkati, before 1850", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319117"}, "43": {"src": "cards/ncma118090.jpg", "fit": "contain", "bg": "#b8b6b9", "obj": "Two beaded panels", "from_": "Anishinaabe or Cree, late 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1939.210"}, "44": {"src": "cards/ncma118091.jpg", "fit": "contain", "bg": "#bab7ba", "obj": "Beaded panel", "from_": "Anishinaabe or Cree, late 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1939.210.1"}, "45": {"src": "cards/nmet717560.jpg", "fit": "contain", "bg": "#c6c6c6", "obj": "Shoulder bag", "from_": "Anishinaabe, ca. 1780", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/717560"}, "46": {"src": "cards/nmet319018.jpg", "fit": "contain", "bg": "#c5c5c5", "obj": "Woven bag", "from_": "Potawatomi or Menominee, 1810–30", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319018"}, "47": {"src": "cards/nmet319113.jpg", "fit": "contain", "bg": "#797979", "obj": "Ball-headed club", "from_": "Western Great Lakes, late 1700s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319113"}, "48": {"src": "cards/nmet751507.jpg", "fit": "contain", "bg": "#eee4d4", "obj": "Shoulder bag", "from_": "Mississauga Ojibwe, ca. 1800", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/751507"}, "49": {"src": "cards/nmet319186.jpg", "fit": "contain", "bg": "#c5c8c3", "obj": "Bandolier bag", "from_": "Ojibwe, ca. 1870", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319186"}, "50": {"src": "cards/ncma118092.jpg", "fit": "contain", "bg": "#b8b6b9", "obj": "Beaded panel", "from_": "Anishinaabe or Cree, late 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1939.210.2"}, "51": {"src": "cards/nmet751499.jpg", "fit": "contain", "bg": "#898989", "obj": "Carved bowl", "from_": "Odawa, ca. 1800", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/751499"}, "52": {"src": "cards/nmet501195.jpg", "fit": "contain", "bg": "#656565", "obj": "Flute", "from_": "Ojibwe, 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/501195"}, "53": {"src": "cards/nmet266873.jpg", "fit": "cover", "bg": "#f4edd5", "obj": "Port on the Great Lakes", "from_": "Photograph, ca. 1895", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/266873"}, "54": {"src": "cards/nmet319107.jpg", "fit": "contain", "bg": "#9b9b9b", "obj": "Quilled knife case", "from_": "Ojibwe, ca. 1843", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319107"}, "55": {"src": "cards/nmet319214.jpg", "fit": "contain", "bg": "#c1c1c1", "obj": "Fire bag", "from_": "Ojibwe or Cree, ca. 1820", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319214"}, "56": {"src": "cards/ncma134329.jpg", "fit": "contain", "bg": "#b2aeb2", "obj": "Beaded placket and cuffs", "from_": "Anishinaabe or Cree, late 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1956.788"}, "57": {"src": "cards/nmet319156.jpg", "fit": "contain", "bg": "#a3a3a3", "obj": "Panel bag", "from_": "Cree-Métis, ca. 1840", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319156"}, "58": {"src": "cards/nmet319218.jpg", "fit": "contain", "bg": "#bababa", "obj": "Knife and case", "from_": "Assiniboine or Gros Ventre, ca. 1870", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319218"}, "59": {"src": "cards/nmet319157.jpg", "fit": "contain", "bg": "#b2b2b2", "obj": "Beaded mittens", "from_": "Cree or Cree-Métis, 1850–60", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319157"}, "60": {"src": "cards/nmet319030.jpg", "fit": "contain", "bg": "#babab9", "obj": "Tobacco bag", "from_": "Assiniboine, 1860–70", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319030"}, "61": {"src": "cards/ncma117283.jpg", "fit": "contain", "bg": "#828481", "obj": "Storage bag", "from_": "Lakota, late 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1937.850"}, "62": {"src": "cards/ncma151624.jpg", "fit": "contain", "bg": "#aeadb2", "obj": "Beaded child’s vest", "from_": "Lakota, ca. 1890–1900", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1984.1049"}, "63": {"src": "cards/nmet319031.jpg", "fit": "contain", "bg": "#cdcdcd", "obj": "Model tipi", "from_": "Blackfoot, 1860s–76", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319031"}, "64": {"src": "cards/nmet319028.jpg", "fit": "contain", "bg": "#e6e6e5", "obj": "Club", "from_": "Assiniboine, 1850–60", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319028"}, "65": {"src": "cards/ncma117308.jpg", "fit": "contain", "bg": "#7d7d7d", "obj": "Cradleboard", "from_": "Lakota, ca. 1900", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1937.869"}, "66": {"src": "cards/ncma145310.jpg", "fit": "contain", "bg": "#8b8a8e", "obj": "Saddle blanket", "from_": "Dakota or Lakota, 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1970.550"}, "67": {"src": "cards/nmet751503.jpg", "fit": "contain", "bg": "#cbcbcb", "obj": "Finger-woven sash", "from_": "Western Great Lakes, ca. 1800", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/751503"}, "68": {"src": "cards/nmet501219.jpg", "fit": "contain", "bg": "#646e85", "obj": "Stick rattle", "from_": "Dakota, 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/501219"}, "69": {"src": "cards/nmet319037.jpg", "fit": "contain", "bg": "#818181", "obj": "Quilled cradleboard cover", "from_": "Eastern Dakota, 1810–30", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319037"}, "70": {"src": "cards/ncma113499.jpg", "fit": "contain", "bg": "#66686a", "obj": "Hair-pipe necklace", "from_": "Nakota, early 1900s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1932.50"}, "71": {"src": "cards/nmet309569.jpg", "fit": "contain", "bg": "#acadac", "obj": "Walrus ivory seal", "from_": "Inuit, 1700s–1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/309569"}, "72": {"src": "cards/nmet717554.jpg", "fit": "contain", "bg": "#0e0d0f", "obj": "Painted caribou-skin coat", "from_": "Innu, ca. 1820", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/717554"}, "73": {"src": "cards/nmet309561.jpg", "fit": "contain", "bg": "#e5e9eb", "obj": "Stone mother and child", "from_": "Inuit, ca. 1900", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/309561"}, "74": {"src": "cards/nmet309550.jpg", "fit": "contain", "bg": "#9ac4e6", "obj": "Ivory water bird", "from_": "Inuit, 900s–1500s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/309550"}, "75": {"src": "cards/nmet319125.jpg", "fit": "contain", "bg": "#a8a8a8", "obj": "Beaded hood", "from_": "James Bay Cree, 1840–50", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319125"}, "76": {"src": "cards/nmet309449.jpg", "fit": "contain", "bg": "#7c7e7b", "obj": "Ivory water bird", "from_": "Inuit, 900s–1500s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/309449"}, "77": {"src": "cards/nmet309451.jpg", "fit": "contain", "bg": "#bb8b5e", "obj": "Walrus ivory animal", "from_": "Inuit, 900s–1500s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/309451"}, "78": {"src": "cards/nmet309552.jpg", "fit": "contain", "bg": "#a7dfe0", "obj": "Ivory loon", "from_": "Inuit, 900s–1500s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/309552"}, "79": {"src": "cards/nmet319155.jpg", "fit": "contain", "bg": "#c8c8c8", "obj": "Cap", "from_": "Naskapi, 1850–60", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319155"}, "80": {"src": "cards/nmet751501.jpg", "fit": "contain", "bg": "#555457", "obj": "Woman’s hood", "from_": "James Bay Cree, ca. 1840", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/751501"}, "81": {"src": "cards/nmet89970.jpg", "fit": "contain", "bg": "#efecdc", "obj": "Coat and leggings", "from_": "Innu, ca. 1820", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/89970"}, "82": {"src": "cards/nmet319133.jpg", "fit": "contain", "bg": "#b0b0ae", "obj": "Legging panels", "from_": "Eastern Cree, ca. 1870", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319133"}, "83": {"src": "cards/nmet501243.jpg", "fit": "contain", "bg": "#989898", "obj": "Frame drum", "from_": "Northern Dene, late 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/501243"}, "84": {"src": "cards/nmet319235.jpg", "fit": "contain", "bg": "#999897", "obj": "Knife sheath", "from_": "Tahltan, 1850–60", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319235"}, "85": {"src": "cards/ncma102957.jpg", "fit": "contain", "bg": "#797978", "obj": "Raven rattle", "from_": "Haida, late 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1921.1577"}, "86": {"src": "cards/nmet312948.jpg", "fit": "contain", "bg": "#dfdfdf", "obj": "Feast bowl", "from_": "Haida, 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/312948"}, "87": {"src": "cards/nmet319092.jpg", "fit": "contain", "bg": "#a3a3a2", "obj": "Totem pole model", "from_": "Haida, ca. 1890", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319092"}, "88": {"src": "cards/nmet319099.jpg", "fit": "contain", "bg": "#d5d1d2", "obj": "Button blanket", "from_": "Kaigani Haida, ca. 1880", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319099"}, "89": {"src": "cards/nmet312626.jpg", "fit": "contain", "bg": "#adadad", "obj": "Whale transformation mask", "from_": "Kwakwaka’wakw, 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/312626"}, "90": {"src": "cards/nmet717587.jpg", "fit": "contain", "bg": "#dcdddb", "obj": "Headdress frontlet", "from_": "Tsimshian, ca. 1820–40", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/717587"}, "91": {"src": "cards/nmet319171.jpg", "fit": "contain", "bg": "#96918b", "obj": "Bentwood chest", "from_": "Tlingit or Tsimshian, 1780–1820", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319171"}, "92": {"src": "cards/ncma106051.jpg", "fit": "contain", "bg": "#636363", "obj": "Covered bowl", "from_": "Vancouver Island, ca. 1875–1900", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1924.166"}, "93": {"src": "cards/nmet319089.jpg", "fit": "contain", "bg": "#b1afad", "obj": "Spindle whorl", "from_": "Coast Salish, ca. 1860", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319089"}, "94": {"src": "cards/ncma110715.jpg", "fit": "contain", "bg": "#555656", "obj": "Woven hat", "from_": "Nuu-chah-nulth or Makah, before 1929", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1929.263"}, "95": {"src": "cards/ncma97820.jpg", "fit": "contain", "bg": "#777677", "obj": "Covered basket", "from_": "Haida, before 1917", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1917.434"}, "96": {"src": "cards/ncma134032.jpg", "fit": "contain", "bg": "#6f706f", "obj": "Eagle mask", "from_": "Nuxalk, 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1956.547"}, "97": {"src": "cards/ncma97795.jpg", "fit": "contain", "bg": "#666568", "obj": "Baby basket", "from_": "Salish (Fraser River), ca. 1875–1910", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1917.418"}, "98": {"src": "cards/ncma97809.jpg", "fit": "contain", "bg": "#6f6e6f", "obj": "Berry basket", "from_": "Coast Salish, 1890", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1917.428"}, "99": {"src": "cards/nmet319071.jpg", "fit": "contain", "bg": "#a8a8a8", "obj": "Cedar canoe model", "from_": "Tlingit, 1860–70", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319071"}, "100": {"src": "cards/nmet313334.jpg", "fit": "contain", "bg": "#7b7b7b", "obj": "Copper", "from_": "Tlingit, 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/313334"}, "101": {"src": "cards/ncma167823.jpg", "fit": "contain", "bg": "#747371", "obj": "Beaver-shaped bowl", "from_": "Tlingit (?), ca. 1890–1920", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/2009.434"}, "102": {"src": "cards/ncma150514.jpg", "fit": "contain", "bg": "#bbbcb4", "obj": "Chilkat robe", "from_": "Tlingit, late 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1981.69"}, "103": {"src": "cards/nmet319091.jpg", "fit": "contain", "bg": "#cac9ca", "obj": "Argillite pipe bowl", "from_": "Haida, 1815–20", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319091"}, "104": {"src": "cards/nmet751492.jpg", "fit": "contain", "bg": "#838383", "obj": "Spruce-root basket", "from_": "Tlingit, ca. 1900", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/751492"}, "105": {"src": "cards/nmet310362.jpg", "fit": "contain", "bg": "#b8bbbc", "obj": "Raven bowl", "from_": "Haida, ca. 1870", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/310362"}, "106": {"src": "cards/nmet309452.jpg", "fit": "contain", "bg": "#95d9e6", "obj": "Walrus ivory animal", "from_": "Inuit, 900s–1500s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/309452"}, "107": {"src": "cards/nmet319075.jpg", "fit": "contain", "bg": "#bfbfbc", "obj": "Halibut hook", "from_": "Tlingit, early 1800s", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319075"}, "108": {"src": "cards/nmet751534.jpg", "fit": "contain", "bg": "#666565", "obj": "Carved bowl", "from_": "Haida, ca. 1800–40", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/751534"}, "109": {"src": "cards/ncma110743.jpg", "fit": "contain", "bg": "#706f6f", "obj": "Basket with rattle top", "from_": "Tlingit, before 1929", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1929.282"}, "110": {"src": "cards/ncma134330.jpg", "fit": "contain", "bg": "#b7b5b8", "obj": "Beaded placket", "from_": "Anishinaabe or Cree, late 1800s", "museum": "Cleveland Museum of Art", "url": "https://clevelandart.org/art/1956.788.1"}, "111": {"src": "cards/nmet319129.jpg", "fit": "contain", "bg": "#908e8c", "obj": "Birchbark tray", "from_": "Wendat, ca. 1860", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319129"}, "112": {"src": "cards/nmet319073.jpg", "fit": "contain", "bg": "#cacaca", "obj": "Totem pole model", "from_": "Tlingit, 1820–40", "museum": "The Met", "url": "https://www.metmuseum.org/art/collection/search/319073"}};
+const ART = Object.fromEntries(Object.entries(PIC).map(([k,p])=>[k,`<img src="${p.src}" alt="${p.obj}, ${p.from_}" style="object-fit:${p.fit};background:${p.bg}" loading="lazy">`]));
+const INFO = {
+ 1:{nation:'Haudenosaunee',era:'The beginning',lore:'She fell from the Sky World, and the animals made a home for her.'},
+ 2:{nation:'Mohawk',era:'1743–1807',lore:'Mohawk war leader, diplomat and translator.'},
+ 3:{nation:'Cayuga',era:'1873–1925',lore:'He carried his people’s own passport across the ocean.'},
+ 4:{nation:'Plains Cree',era:'c. 1842–1886',lore:'A Cree chief remembered for choosing peace.'},
+ 5:{nation:'Saulteaux',era:'c. 1774–1864',lore:'He shared food and land with newcomers at the Red River.'},
+ 6:{nation:'Haudenosaunee',era:'The beginning',lore:'One brother made the world gentle. The other made it wild.'},
+ 7:{nation:'Siksika',era:'c. 1830–1890',lore:'A Blackfoot chief known for wisdom and keeping the peace.'},
+ 8:{nation:'Mohawk',era:'c. 1742–1811',lore:'He led Mohawk families across the water to a new home.'},
+ 9:{nation:'Haudenosaunee',era:'Ancient',lore:'Powerful helpers who live in the western sky.'},
+ 10:{nation:'Haudenosaunee',era:'Ancient',lore:'Three sisters who grow best when they stay together.'},
+ 11:{nation:'Six Nations',era:'Founded 1784',lore:'The largest First Nations community in Canada.'},
+ 12:{nation:'Kanien’kehá:ka',era:'Founded 1750s',lore:'A Mohawk community on the St. Lawrence River.'},
+ 13:{"nation": "Wendat", "era": "c. 1649–1701", "lore": "His words helped end a long war."},
+ 14:{"nation": "Shawnee", "era": "1768–1813", "lore": "He dreamed of one alliance of many Nations."},
+ 15:{"nation": "Kanien’kehá:ka", "era": "Long ago", "lore": "A test at the great falls."},
+ 16:{"nation": "Mohawk", "era": "c. 1736–1796", "lore": "A clan matron whose word carried great weight."},
+ 17:{"nation": "Mohawk", "era": "1861–1913", "lore": "Her poems filled theatres across Canada."},
+ 18:{"nation": "Onondaga", "era": "1886–1949", "lore": "One of the fastest runners in the world."},
+ 19:{"nation": "Haudenosaunee", "era": "Ancient", "lore": "A medicine game for the Creator."},
+ 20:{"nation": "Haudenosaunee", "era": "1613", "lore": "Side by side, in peace and friendship."},
+ 21:{"nation": "Huron-Wendat", "era": "Late 1600s", "lore": "A Wendat home on the St. Lawrence."},
+ 22:{"nation": "Wendat", "era": "1700s–1800s", "lore": "Flowers stitched one hair at a time."},
+ 23:{"nation": "Wendat", "era": "c. 1830", "lore": "Woven with fingers, not a loom."},
+ 24:{"nation": "Wendat & Haudenosaunee", "era": "1800s", "lore": "Art that kept families going."},
+ 25:{"nation": "Wendat", "era": "1830s", "lore": "Bark from the paper birch."},
+ 26:{"nation": "Wendat", "era": "Before 1650", "lore": "Villages of corn fields and longhouses."},
+ 27:{"nation": "Many Nations", "era": "1830s", "lore": "Soft shoes for quiet steps."},
+ 28:{"nation": "Kanien’kehá:ka", "era": "Ancient", "lore": "The clan of the Great Turtle."},
+ 29:{"nation": "Mi’kmaq", "era": "Long ago", "lore": "He shaped the land and named the animals."},
+ 30:{"nation": "Mi’kmaq", "era": "Died 1611", "lore": "He welcomed the French at Port-Royal."},
+ 31:{"nation": "Mi’kmaq & Wolastoqiyik", "era": "1725–1779", "lore": "Treaties of peace, not land sales."},
+ 32:{"nation": "Wabanaki Nations", "era": "1600s–today", "lore": "Where the sun first rises."},
+ 33:{"nation": "Mi’kmaq", "era": "1840s", "lore": "Quills pressed into birchbark."},
+ 34:{"nation": "Mi’kmaq", "era": "1600s–1800s", "lore": "Symbols that held prayers and songs."},
+ 35:{"nation": "Mi’kmaq", "era": "1800s", "lore": "A bark horn that speaks moose."},
+ 36:{"nation": "Mi’kmaq & Haudenosaunee", "era": "1800–1820", "lore": "Glass from far away, designs from home."},
+ 37:{"nation": "Peskotomuhkati", "era": "c. 1840", "lore": "Baskets that smell like summer."},
+ 38:{"nation": "Mi’kmaq", "era": "c. 1860", "lore": "Small chairs, big skill."},
+ 39:{"nation": "Wolastoqiyik", "era": "Before 1845", "lore": "People of the Beautiful River."},
+ 40:{"nation": "Mi’kmaq", "era": "Always", "lore": "The land of the Mi’kmaq."},
+ 41:{"nation": "Mi’kmaq", "era": "Mid-1800s", "lore": "Old patterns on new furniture."},
+ 42:{"nation": "Penobscot & Peskotomuhkati", "era": "Before 1850", "lore": "One curved blade, many tools."},
+ 43:{"nation": "Anishinaabe", "era": "Long ago", "lore": "Trickster, teacher, shape-changer."},
+ 44:{"nation": "Anishinaabe", "era": "Ancient", "lore": "Seven gifts for a good life."},
+ 45:{"nation": "Anishinaabe", "era": "Long ago", "lore": "West to where food grows on water."},
+ 46:{"nation": "Ojibwe, Odawa & Potawatomi", "era": "Ancient", "lore": "Three Nations, one council fire."},
+ 47:{"nation": "Ojibwe", "era": "c. 1773–1854", "lore": "He stood up for the land at Garden River."},
+ 48:{"nation": "Mississauga Ojibwe", "era": "1824–1865", "lore": "She took her case to the Queen."},
+ 49:{"nation": "Ojibwe", "era": "c. 1870", "lore": "Worth as much as a horse."},
+ 50:{"nation": "Anishinaabe", "era": "Late 1800s", "lore": "Gardens made of glass beads."},
+ 51:{"nation": "Anishinaabe & Odawa", "era": "c. 1800", "lore": "Spring sap, sweet all year."},
+ 52:{"nation": "Ojibwe", "era": "1800s", "lore": "Songs carried on cedar breath."},
+ 53:{"nation": "Ojibwe", "era": "Always", "lore": "The great sea of fresh water."},
+ 54:{"nation": "Ojibwe", "era": "c. 1843", "lore": "Colour from plants, shine from quills."},
+ 55:{"nation": "Ojibwe or Cree", "era": "c. 1820", "lore": "Fire carried at your side."},
+ 56:{"nation": "Anishinaabe", "era": "Always", "lore": "The largest island in fresh water."},
+ 57:{"nation": "Métis", "era": "1844–1885", "lore": "He stood up for Métis land and rights."},
+ 58:{"nation": "Plains Cree", "era": "c. 1825–1888", "lore": "He held out for a fairer deal."},
+ 59:{"nation": "Métis", "era": "1837–1906", "lore": "Leader of the great buffalo hunts."},
+ 60:{"nation": "Plains Cree & others", "era": "1876", "lore": "The medicine chest promise."},
+ 61:{"nation": "Plains Nations", "era": "Late 1800s", "lore": "Everything the people needed."},
+ 62:{"nation": "Cree", "era": "c. 1816–1908", "lore": "He stood in the path of the railway."},
+ 63:{"nation": "Blackfoot", "era": "1860s–70s", "lore": "A home that travels."},
+ 64:{"nation": "Nakoda", "era": "1850s", "lore": "People of the foothills."},
+ 65:{"nation": "Lakota & Dakota", "era": "c. 1900", "lore": "A safe, beaded place for a baby."},
+ 66:{"nation": "Plains Nations", "era": "1700s", "lore": "The horse changed everything."},
+ 67:{"nation": "Métis", "era": "1800s–today", "lore": "Two languages woven into one."},
+ 68:{"nation": "Dakota", "era": "1800s–today", "lore": "At home on the prairie."},
+ 69:{"nation": "Eastern Dakota", "era": "1810–30", "lore": "Quills woven tight as cloth."},
+ 70:{"nation": "Nakota", "era": "Early 1900s", "lore": "Long beads of bone."},
+ 71:{"nation": "Inuit", "era": "Long ago", "lore": "Mother of the sea animals."},
+ 72:{"nation": "Innu", "era": "c. 1820", "lore": "Dream designs for the hunt."},
+ 73:{"nation": "Inuit", "era": "c. 1900", "lore": "Warm on mother’s back."},
+ 74:{"nation": "Inuit", "era": "1999", "lore": "Our land."},
+ 75:{"nation": "Eeyou (Cree)", "era": "1975", "lore": "The land of the people."},
+ 76:{"nation": "Inuit", "era": "c. 1000–1600", "lore": "Whale hunters who crossed the Arctic."},
+ 77:{"nation": "Inuit", "era": "900s–1500s", "lore": "Tiny animals, carved by hand."},
+ 78:{"nation": "Inuit", "era": "900s–1500s", "lore": "A call that echoes over the lake."},
+ 79:{"nation": "Naskapi", "era": "1850–60", "lore": "Following the caribou."},
+ 80:{"nation": "James Bay Cree", "era": "c. 1840", "lore": "Beads and wool for the cold."},
+ 81:{"nation": "Innu", "era": "Always", "lore": "Our land, to the Innu."},
+ 82:{"nation": "Eastern Cree", "era": "c. 1870", "lore": "Warm legs on the trail."},
+ 83:{"nation": "Dene", "era": "Late 1800s", "lore": "A drum that keeps the night going."},
+ 84:{"nation": "Tahltan", "era": "1850–60", "lore": "People of the Stikine."},
+ 85:{"nation": "Haida", "era": "Long ago", "lore": "The trickster who freed the light."},
+ 86:{"nation": "Northwest Coast Nations", "era": "Ancient–today", "lore": "Giving makes you great."},
+ 87:{"nation": "Haida", "era": "c. 1890", "lore": "Family histories in cedar."},
+ 88:{"nation": "Haida", "era": "c. 1880", "lore": "Crests that shine in firelight."},
+ 89:{"nation": "Kwakwaka’wakw", "era": "1800s", "lore": "One face hides another."},
+ 90:{"nation": "Tsimshian", "era": "c. 1820–40", "lore": "Eagle down for peace."},
+ 91:{"nation": "Tlingit or Tsimshian", "era": "1780–1820", "lore": "One plank, four sides."},
+ 92:{"nation": "Coast Nations", "era": "Every year", "lore": "They always come home."},
+ 93:{"nation": "Coast Salish", "era": "c. 1860", "lore": "Wool from a dog, spun on a whorl."},
+ 94:{"nation": "Nuu-chah-nulth", "era": "Before 1929", "lore": "Woven to shed the rain."},
+ 95:{"nation": "Haida", "era": "Always", "lore": "Islands of the people."},
+ 96:{"nation": "Nuxalk", "era": "1800s", "lore": "Masks of blue and green."},
+ 97:{"nation": "Stó:lō (Salish)", "era": "c. 1875–1910", "lore": "Baskets that hold water."},
+ 98:{"nation": "Coast Salish", "era": "1890", "lore": "Summer berries for winter."},
+ 99:{"nation": "Coast Nations", "era": "Always", "lore": "The tree of life."},
+ 100:{"nation": "Tlingit", "era": "1800s", "lore": "Wealth you could hold."},
+ 101:{"nation": "Northwest Coast", "era": "c. 1890–1920", "lore": "The builder of ponds."},
+ 102:{"nation": "Tlingit", "era": "Late 1800s", "lore": "Wool from the mountain tops."},
+ 103:{"nation": "Haida", "era": "1815–20", "lore": "Black stone, Haida hands."},
+ 104:{"nation": "Tlingit", "era": "Long ago", "lore": "Ashes that still bite."},
+ 105:{"nation": "Haida", "era": "c. 1870", "lore": "Clever, hungry, and brave."},
+ 106:{"nation": "Inuit", "era": "900s–1500s", "lore": "Tusks for tools and art."},
+ 107:{"nation": "Tlingit", "era": "Early 1800s", "lore": "A giant flat fish of the deep."},
+ 108:{"nation": "Coast Nations", "era": "Ancient–today", "lore": "The fish that burns like a candle."},
+ 109:{"nation": "Haida", "era": "Before 1917", "lore": "Roots split fine as thread."},
+ 110:{"nation": "Anishinaabe", "era": "Late 1800s", "lore": "The first fruit of summer."},
+ 111:{"nation": "Wendat", "era": "c. 1860", "lore": "Bark that keeps the water out."},
+ 112:{"nation": "Tlingit", "era": "1820–40", "lore": "Two halves, one people."}
+};
+const RAR = {
+ leg:{label:'LEGENDARY',stars:'★★★★',cls:'r-leg',beads:5,cost:12,w:8},
+ rare:{label:'RARE',stars:'★★★',cls:'r-rare',beads:3,cost:8,w:22},
+ unc:{label:'UNCOMMON',stars:'★★',cls:'r-unc',beads:2,cost:6,w:30},
+ com:{label:'COMMON',stars:'★',cls:'r-com',beads:1,cost:4,w:40}
+};
+const CARDS = [
+ {id:1,name:'Sky Woman',type:'LEGEND',r:'leg',fact:'Sky Woman fell from the Sky World. Birds caught her, the Great Turtle offered its back, and Muskrat brought up mud that grew into the land we call Turtle Island.',q:'Which animal dove down and brought up the mud?',a:'Muskrat',w:['Beaver','Loon','Otter']},
+ {id:2,name:'Joseph Brant',type:'LEADER · MOHAWK',r:'leg',fact:'Thayendanegea led many Haudenosaunee to the Grand River in 1784. In 1785 they built the Mohawk Chapel, now the oldest surviving church in Ontario.',q:'Which river did Joseph Brant lead his people to?',a:'The Grand River',w:['The Red River','The Fraser River','The Ottawa River']},
+ {id:3,name:'Deskaheh',type:'CHIEF · CAYUGA',r:'rare',fact:'In 1923, Cayuga chief Deskaheh travelled to Geneva on a Haudenosaunee passport to ask the League of Nations to recognize the Six Nations as a sovereign people.',q:'Which world organization did Deskaheh travel to?',a:'The League of Nations',w:['The United Nations','The Red Cross','The Hudson’s Bay Company']},
+ {id:4,name:'Poundmaker',type:'CHIEF · PLAINS CREE',r:'rare',fact:'Pîhtokahanapiwiyin was a Cree chief known for keeping the peace. He was wrongly convicted of treason in 1885, and Canada cleared his name in 2019.',q:'What did Canada do for Poundmaker in 2019?',a:'Cleared his name',w:['Named a city after him','Put him on a coin','Gave him a medal']},
+ {id:5,name:'Peguis',type:'CHIEF · SAULTEAUX',r:'rare',fact:'Peguis was a Saulteaux (Anishinaabe) chief at the Red River. He helped the Selkirk settlers survive their first hard winters and signed the Selkirk Treaty in 1817.',q:'Which treaty did Peguis sign in 1817?',a:'The Selkirk Treaty',w:['Treaty 7','Treaty 9','The Haldimand Proclamation']},
+ {id:6,name:'The Twin Brothers',type:'LEGEND',r:'rare',fact:'Sky Woman’s grandsons shaped the world. Sapling made gentle rivers, plants and animals. His brother Flint added thorns, rapids and storms, so the world holds both.',q:'What did Flint add to the world?',a:'Thorns, rapids and storms',w:['Corn, beans and squash','The sun and the moon','Rivers that flow both ways']},
+ {id:7,name:'Crowfoot',type:'CHIEF · SIKSIKA',r:'unc',fact:'Isapo-Muxika was a Siksika (Blackfoot) chief. In 1877 he signed Treaty 7 at Blackfoot Crossing in what is now Alberta.',q:'Which treaty did Crowfoot sign?',a:'Treaty 7',w:['Treaty 1','Treaty 6','Treaty 9']},
+ {id:8,name:'John Deserontyon',type:'LEADER · MOHAWK',r:'unc',fact:'In 1784, Deserontyon led Mohawk families by water to the Bay of Quinte, where they founded the community of Tyendinaga.',q:'Which community did John Deserontyon found?',a:'Tyendinaga',w:['Akwesasne','Kahnawà:ke','Kanesatake']},
+ {id:9,name:'The Thunderers',type:'LEGEND',r:'unc',fact:'In Haudenosaunee tradition, the Thunderers live in the western sky. They bring the rain that feeds the crops and keep dangerous creatures away.',q:'What do the Thunderers bring to the crops?',a:'Rain',w:['Snow','Sunshine','Wind']},
+ {id:10,name:'The Three Sisters',type:'LEGEND · FOOD',r:'com',fact:'Corn, beans and squash grow best together. Corn gives the beans a pole to climb, beans feed the soil, and squash leaves shade the ground.',q:'Which sister climbs up the corn?',a:'Beans',w:['Squash','Sunflower','Strawberry']},
+ {id:11,name:'Six Nations of the Grand River',type:'LAND · 1784',r:'com',fact:'Founded on the Haldimand Tract, land along the Grand River promised to the Six Nations in 1784. It is the most populous First Nations reserve in Canada.',q:'What was the land along the Grand River called?',a:'The Haldimand Tract',w:['Rupert’s Land','The Selkirk Grant','The Red River Colony']},
+ {id:12,name:'Akwesasne',type:"LAND · KANIEN'KEHÁ:KA",r:'com',fact:'A Kanien’kehá:ka community on the St. Lawrence River. Its land crosses the borders of Ontario, Quebec and New York State.',q:'Which borders cross Akwesasne?',a:'Ontario, Quebec and New York',w:['Ontario and Manitoba','Quebec and Maine','New York and Vermont']},
+ {"id": 13, "s": 1, "name": "Kondiaronk", "type": "CHIEF · WENDAT", "r": "rare", "fact": "Kondiaronk was a Wendat chief and a gifted speaker. He helped bring about the Great Peace of Montreal in 1701, signed by about 40 Nations and New France.", "q": "Which city gave its name to the Great Peace of 1701?", "a": "Montreal", "w": ["Quebec City", "Toronto", "Halifax"]},
+ {"id": 14, "s": 1, "name": "Tecumseh", "type": "LEADER · SHAWNEE", "r": "leg", "fact": "Tecumseh was a Shawnee leader who worked to unite many Nations. He fought beside the British in the War of 1812 and died at the Battle of the Thames in Ontario in 1813.", "q": "In which war did Tecumseh fight beside the British?", "a": "The War of 1812", "w": ["The Seven Years’ War", "The American Revolution", "The First World War"]},
+ {"id": 15, "s": 2, "name": "The Test at the Falls", "type": "LEGEND", "r": "leg", "fact": "In many tellings, the Mohawk tested the Peacemaker by having him climb a tree above a great waterfall. The tree was cut down, but he was found alive the next morning, and the Mohawk accepted peace.", "q": "Which Nation was first to accept the Peacemaker’s message?", "a": "The Mohawk", "w": ["The Onondaga", "The Seneca", "The Tuscarora"]},
+ {"id": 16, "s": 2, "name": "Molly Brant", "type": "LEADER · MOHAWK", "r": "leg", "fact": "Konwatsi’tsiaienni (Molly Brant) was a powerful Mohawk clan matron and Joseph Brant’s older sister. She helped keep the Haudenosaunee allied with Britain and later settled in Kingston, Ontario.", "q": "Which Ontario city did Molly Brant settle in?", "a": "Kingston", "w": ["Toronto", "Ottawa", "Windsor"]},
+ {"id": 17, "s": 2, "name": "E. Pauline Johnson", "type": "POET · MOHAWK", "r": "rare", "fact": "Tekahionwake (E. Pauline Johnson) was a Mohawk poet born at Chiefswood on the Six Nations reserve in 1861. She toured Canada, England and the United States performing her poems.", "q": "What was Pauline Johnson famous for?", "a": "Writing and performing poems", "w": ["Running races", "Painting portraits", "Building canoes"]},
+ {"id": 18, "s": 2, "name": "Tom Longboat", "type": "ATHLETE · ONONDAGA", "r": "rare", "fact": "Cogwagee (Tom Longboat), an Onondaga runner from Six Nations, won the Boston Marathon in 1907 in record time. In the First World War he carried messages as a dispatch runner.", "q": "Which famous race did Tom Longboat win in 1907?", "a": "The Boston Marathon", "w": ["The Olympic 100 metres", "The Tour de France", "The Calgary Stampede"]},
+ {"id": 19, "s": 2, "name": "Lacrosse", "type": "THE CREATOR’S GAME", "r": "rare", "fact": "Lacrosse began as a Haudenosaunee and Great Lakes game, played to honour the Creator and to heal. Some old games had hundreds of players on very long fields.", "q": "What do the Haudenosaunee call lacrosse?", "a": "The Creator’s Game", "w": ["The Iron Game", "The Ice Game", "The River Game"]},
+ {"id": 20, "s": 2, "name": "Two Row Wampum", "type": "TREATY · 1613", "r": "rare", "fact": "Haudenosaunee tradition says the Two Row Wampum records an agreement with Dutch traders in 1613. Two purple rows stand for a canoe and a ship travelling side by side, never steering into each other.", "q": "What do the two rows on the Two Row Wampum stand for?", "a": "Two boats travelling side by side", "w": ["Two rivers meeting", "Two chiefs at war", "Two seasons of the year"]},
+ {"id": 21, "s": 2, "name": "Wendake", "type": "LAND · WENDAT", "r": "com", "fact": "Wendake is the home of the Huron-Wendat Nation, right beside Quebec City. Wendat families settled there in the late 1600s.", "q": "Which city is Wendake beside?", "a": "Quebec City", "w": ["Montreal", "Ottawa", "Toronto"]},
+ {"id": 22, "s": 2, "name": "Moosehair Embroidery", "type": "ART · WENDAT", "r": "unc", "fact": "Wendat artists dyed moose hair in bright colours and stitched it onto hide and birchbark to make flowers, vines and berries.", "q": "What animal’s hair did Wendat artists dye and stitch?", "a": "Moose", "w": ["Horse", "Wolf", "Beaver"]},
+ {"id": 23, "s": 2, "name": "Finger Weaving", "type": "ART · WENDAT", "r": "unc", "fact": "Sashes like this were braided by hand with no loom. The arrow sash worn by voyageurs and the Métis is made the same way.", "q": "Finger-woven sashes are made without which tool?", "a": "A loom", "w": ["Their hands", "Yarn", "Dye"]},
+ {"id": 24, "s": 2, "name": "Souvenir Art at Niagara", "type": "ART · TRADE", "r": "unc", "fact": "In the 1800s, Wendat and Haudenosaunee artists sold beaded and embroidered pieces to visitors at places like Niagara Falls. The money helped families through hard times.", "q": "Which famous waterfall drew many visitors who bought Indigenous art?", "a": "Niagara Falls", "w": ["Victoria Falls", "Kakabeka Falls", "Angel Falls"]},
+ {"id": 25, "s": 2, "name": "Birchbark Boxes", "type": "ART · WENDAT", "r": "com", "fact": "Wendat artists made boxes, trays and cases from birchbark, then decorated them with moose hair or porcupine quills.", "q": "Which tree’s bark did artists use for these boxes?", "a": "Birch", "w": ["Pine", "Oak", "Maple"]},
+ {"id": 26, "s": 2, "name": "Old Huronia", "type": "LAND · WENDAT", "r": "unc", "fact": "Before 1650, about 20,000 to 30,000 Wendat lived in farming villages between Lake Simcoe and Georgian Bay in what is now Ontario.", "q": "Which bay borders the old Wendat homeland?", "a": "Georgian Bay", "w": ["Hudson Bay", "James Bay", "The Bay of Fundy"]},
+ {"id": 27, "s": 2, "name": "Moccasins", "type": "CLOTHING", "r": "com", "fact": "Moccasins are soft shoes made of tanned hide. The word comes from an Algonquian language, and every Nation had its own shape and decoration.", "q": "What are moccasins made of?", "a": "Tanned hide", "w": ["Wood", "Rubber", "Clay"]},
+ {"id": 28, "s": 2, "name": "Turtle Clan", "type": "CLAN · KANIEN’KEHÁ:KA", "r": "com", "fact": "Turtle is one of the three Kanien’kehá:ka clans, with Bear and Wolf. A child belongs to the clan of their mother.", "q": "Through which parent does a Haudenosaunee child get their clan?", "a": "Their mother", "w": ["Their father", "Their grandfather", "The chief"]},
+ {"id": 29, "s": 3, "name": "Kluskap", "type": "LEGEND · MI’KMAQ", "r": "leg", "fact": "Kluskap is the great culture hero of the Mi’kmaq and Wolastoqiyik. Stories say he shaped the land, named the animals and taught people how to live well.", "q": "Kluskap is a hero in the stories of which Nation?", "a": "The Mi’kmaq", "w": ["The Haida", "The Blackfoot", "The Dene"]},
+ {"id": 30, "s": 3, "name": "Membertou", "type": "CHIEF · MI’KMAQ", "r": "leg", "fact": "Membertou was a Mi’kmaq chief near Port-Royal in Nova Scotia. He welcomed French settlers in 1605 and became a close ally of the colony.", "q": "What is the Mi’kmaq word for a chief?", "a": "Saqamaw", "w": ["Hoyaneh", "Ogimaa", "Tyee"]},
+ {"id": 31, "s": 3, "name": "Peace and Friendship Treaties", "type": "TREATY · 1725–1779", "r": "rare", "fact": "The Mi’kmaq, Wolastoqiyik and Peskotomuhkati signed Peace and Friendship Treaties with Britain. They did not give up their land. In 1999 the Marshall decision upheld their treaty right to fish and earn a living.", "q": "What right did the 1999 Marshall decision uphold?", "a": "To fish and earn a living", "w": ["To vote in elections", "To build forts", "To mine gold"]},
+ {"id": 32, "s": 3, "name": "Wabanaki Confederacy", "type": "ALLIANCE", "r": "rare", "fact": "The Wabanaki Confederacy joined the Mi’kmaq, Wolastoqiyik, Peskotomuhkati, Penobscot and Abenaki. Wabanaki means People of the Dawn, because they live where the sun rises first.", "q": "Why are the Wabanaki called People of the Dawn?", "a": "They live where the sun rises first", "w": ["They wake up very early", "They fish at sunrise", "They came from the stars"]},
+ {"id": 33, "s": 3, "name": "Quillwork Boxes", "type": "ART · MI’KMAQ", "r": "rare", "fact": "Mi’kmaq artists dyed porcupine quills and pushed them through tiny holes in birchbark to make bright, geometric boxes. Many were sold to visitors in the 1800s.", "q": "Which animal gives quills for quillwork?", "a": "Porcupine", "w": ["Beaver", "Eagle", "Hedgehog"]},
+ {"id": 34, "s": 3, "name": "Mi’kmaq Writing", "type": "LANGUAGE · MI’KMAQ", "r": "rare", "fact": "The Mi’kmaq used picture symbols, called komqwejwi’kasikl, to remember prayers and songs. From the 1600s, missionaries printed prayer books using them.", "q": "What did Mi’kmaq symbol writing often record?", "a": "Prayers and songs", "w": ["Maps of rivers", "Trade prices", "Hunting scores"]},
+ {"id": 35, "s": 3, "name": "Moose Calling", "type": "ANIMAL · MI’KMAQ", "r": "unc", "fact": "Hunters rolled birchbark into a cone and used it to copy the call of a moose. In the fall, the sound carried far across lakes and marshes.", "q": "What shape is a birchbark moose call?", "a": "A cone", "w": ["A ball", "A box", "A flat sheet"]},
+ {"id": 36, "s": 3, "name": "Trade Beads", "type": "TRADE", "r": "unc", "fact": "Glass beads came from Europe through trade. Indigenous artists made them their own, sewing them into new designs on cloth and hide.", "q": "Where were most early glass trade beads made?", "a": "Europe", "w": ["China", "Mexico", "Hawaii"]},
+ {"id": 37, "s": 3, "name": "Sweetgrass Baskets", "type": "ART · PESKOTOMUHKATI", "r": "unc", "fact": "Peskotomuhkati (Passamaquoddy) and other Wabanaki basket makers weave brown ash splints and fragrant sweetgrass. Many families still pass this skill down today.", "q": "Which grass gives Wabanaki baskets their sweet smell?", "a": "Sweetgrass", "w": ["Wheat", "Bamboo", "Reed"]},
+ {"id": 38, "s": 3, "name": "Making a Living", "type": "ART · MI’KMAQ", "r": "unc", "fact": "Mi’kmaq families made small chairs, canoes and toys to sell. Craft sales helped them survive after much of their land was taken by settlers.", "q": "Why did many Mi’kmaq families sell crafts in the 1800s?", "a": "To support their families", "w": ["To pay for a war", "To build a railway", "To win a contest"]},
+ {"id": 39, "s": 3, "name": "Wolastoqiyik", "type": "NATION", "r": "com", "fact": "The Wolastoqiyik (Maliseet) take their name from the Wolastoq, the Saint John River in New Brunswick. Their name means People of the Beautiful River.", "q": "What does Wolastoqiyik mean?", "a": "People of the Beautiful River", "w": ["People of the Longhouse", "People of the Plains", "People of the Ice"]},
+ {"id": 40, "s": 3, "name": "Mi’kma’ki", "type": "LAND · MI’KMAQ", "r": "com", "fact": "Mi’kma’ki is the Mi’kmaq homeland. It covers Nova Scotia, Prince Edward Island and parts of New Brunswick, Quebec and Newfoundland, and has seven traditional districts.", "q": "How many traditional districts does Mi’kma’ki have?", "a": "Seven", "w": ["Three", "Five", "Twelve"]},
+ {"id": 41, "s": 3, "name": "Quillwork Chairs", "type": "ART · MI’KMAQ", "r": "com", "fact": "By the mid-1800s, Mi’kmaq artists made quillwork panels for chair seats and cases, mixing their own designs with styles settlers liked.", "q": "What material was the base of Mi’kmaq quillwork panels?", "a": "Birchbark", "w": ["Silk", "Metal", "Glass"]},
+ {"id": 42, "s": 3, "name": "Crooked Knife", "type": "TOOL · WABANAKI", "r": "com", "fact": "Wabanaki carvers used a crooked knife, pulled toward the body, to shape cups, bowls, paddles and snowshoe frames.", "q": "Which tool did Wabanaki carvers use for wood?", "a": "A crooked knife", "w": ["A chainsaw", "A lathe", "A hammer"]},
+ {"id": 43, "s": 4, "name": "Nanabozho", "type": "LEGEND · ANISHINAABE", "r": "leg", "fact": "Nanabozho is the Anishinaabe trickster and teacher. He can change shape, makes mistakes, and in many stories rebuilds the world after a great flood.", "q": "What kind of figure is Nanabozho?", "a": "A trickster and teacher", "w": ["A war chief", "A sea monster", "A star"]},
+ {"id": 44, "s": 4, "name": "Seven Grandfather Teachings", "type": "TEACHING · ANISHINAABE", "r": "leg", "fact": "The Seven Grandfather Teachings are Wisdom, Love, Respect, Bravery, Honesty, Humility and Truth. They guide how to live a good life.", "q": "Which of these is one of the Seven Grandfather Teachings?", "a": "Humility", "w": ["Wealth", "Victory", "Speed"]},
+ {"id": 45, "s": 4, "name": "The Great Migration", "type": "HISTORY · ANISHINAABE", "r": "rare", "fact": "Anishinaabe history tells of a great migration from the Atlantic coast, following a sacred shell west until they reached the Great Lakes, the place where food grows on the water.", "q": "What food that grows on water ended the migration?", "a": "Wild rice", "w": ["Corn", "Strawberries", "Salmon"]},
+ {"id": 46, "s": 4, "name": "Council of Three Fires", "type": "ALLIANCE", "r": "rare", "fact": "The Ojibwe, Odawa and Potawatomi formed the Council of Three Fires. The Ojibwe keep the faith, the Odawa keep the trade, and the Potawatomi keep the fire.", "q": "Which Nation is known as the Keepers of the Fire?", "a": "Potawatomi", "w": ["Ojibwe", "Odawa", "Cree"]},
+ {"id": 47, "s": 4, "name": "Shingwaukonse", "type": "CHIEF · OJIBWE", "r": "rare", "fact": "Shingwaukonse was an Ojibwe chief at Garden River near Sault Ste. Marie. He fought in the War of 1812 and pushed for the Robinson Treaties of 1850 to protect his people’s land.", "q": "Near which city did Shingwaukonse lead his people?", "a": "Sault Ste. Marie", "w": ["Thunder Bay", "Sudbury", "Kenora"]},
+ {"id": 48, "s": 4, "name": "Nahnebahwequay", "type": "LEADER · MISSISSAUGA", "r": "rare", "fact": "Nahnebahwequay (Catherine Sutton) was a Mississauga Ojibwe woman who fought to keep her family’s land. In 1860 she travelled to England and met Queen Victoria.", "q": "Who did Nahnebahwequay meet in England in 1860?", "a": "Queen Victoria", "w": ["King George III", "The Pope", "Napoleon"]},
+ {"id": 49, "s": 4, "name": "Bandolier Bags", "type": "ART · OJIBWE", "r": "unc", "fact": "Bandolier bags were worn across the chest at special events. A heavily beaded bag could be traded for a horse.", "q": "How is a bandolier bag worn?", "a": "Across the chest, over one shoulder", "w": ["On the head", "Around the ankle", "Held in one hand"]},
+ {"id": 50, "s": 4, "name": "Floral Beadwork", "type": "ART · GREAT LAKES", "r": "unc", "fact": "Great Lakes artists are famous for floral beadwork. The Métis carried the style west, and the Dakota called them the flower beadwork people.", "q": "Which people were called the flower beadwork people?", "a": "The Métis", "w": ["The Haida", "The Inuit", "The Mohawk"]},
+ {"id": 51, "s": 4, "name": "Maple Sugar", "type": "FOOD · ANISHINAABE", "r": "unc", "fact": "Every spring, Anishinaabe families moved to sugar bush camps to tap maple trees and boil the sap into sugar, an important food all year.", "q": "Which part of the maple tree is boiled into sugar?", "a": "The sap", "w": ["The leaves", "The bark", "The roots"]},
+ {"id": 52, "s": 4, "name": "Cedar Flute", "type": "MUSIC · OJIBWE", "r": "unc", "fact": "Wooden flutes, called bibigwan in Ojibwe, were often carved from cedar. Flute songs carried feelings that words could not.", "q": "What wood were Ojibwe flutes often made from?", "a": "Cedar", "w": ["Oak", "Maple", "Pine"]},
+ {"id": 53, "s": 4, "name": "Gichigami", "type": "LAND · LAKE SUPERIOR", "r": "com", "fact": "Gichigami, Lake Superior, is the largest freshwater lake in the world by area. Its Ojibwe name means great sea.", "q": "What does Gichigami mean?", "a": "Great sea", "w": ["Cold water", "Many islands", "Sunset lake"]},
+ {"id": 54, "s": 4, "name": "Porcupine Quills", "type": "ART · OJIBWE", "r": "com", "fact": "Before glass beads arrived, artists softened porcupine quills in their mouths, flattened them, and dyed them with plants to decorate bags and cases.", "q": "How did artists soften porcupine quills?", "a": "By holding them in their mouths", "w": ["By boiling them in oil", "By freezing them", "By burning them"]},
+ {"id": 55, "s": 4, "name": "Fire Bags", "type": "TOOL · GREAT LAKES", "r": "com", "fact": "Fire bags held flint, steel and tinder for starting fires, plus tobacco. They were often beautifully decorated.", "q": "What did a fire bag hold?", "a": "Flint, steel and tinder", "w": ["Water and food", "Arrows", "Fishing nets"]},
+ {"id": 56, "s": 4, "name": "Manitoulin Island", "type": "LAND · ANISHINAABE", "r": "com", "fact": "Manitoulin Island in Lake Huron is the largest freshwater island in the world. It is home to several Anishinaabe First Nations, including Wiikwemkoong.", "q": "Which lake is Manitoulin Island in?", "a": "Lake Huron", "w": ["Lake Superior", "Lake Erie", "Lake Ontario"]},
+ {"id": 57, "s": 5, "name": "Louis Riel", "type": "LEADER · MÉTIS", "r": "leg", "fact": "Louis Riel led the Métis in the Red River Resistance of 1869–70, which led to Manitoba joining Canada. He is honoured as a founder of Manitoba.", "q": "Which province is Louis Riel honoured for founding?", "a": "Manitoba", "w": ["Saskatchewan", "Alberta", "Ontario"]},
+ {"id": 58, "s": 5, "name": "Big Bear", "type": "CHIEF · PLAINS CREE", "r": "leg", "fact": "Mistahimaskwa (Big Bear) was a Plains Cree chief who refused to sign Treaty 6 in 1876 because it did not protect his people well enough. He finally signed in 1882 when his people were starving.", "q": "Which treaty did Big Bear refuse to sign for six years?", "a": "Treaty 6", "w": ["Treaty 1", "Treaty 7", "Treaty 9"]},
+ {"id": 59, "s": 5, "name": "Gabriel Dumont", "type": "LEADER · MÉTIS", "r": "rare", "fact": "Gabriel Dumont was a Métis buffalo hunt chief who spoke six languages. He led the Métis fighters at Batoche in 1885.", "q": "Where did Gabriel Dumont lead the Métis in 1885?", "a": "Batoche", "w": ["Quebec City", "Vimy Ridge", "Fort York"]},
+ {"id": 60, "s": 5, "name": "Treaty 6", "type": "TREATY · 1876", "r": "rare", "fact": "Treaty 6 was signed at Fort Carlton and Fort Pitt in 1876. It promised a medicine chest to be kept for the people, which many Nations see as a promise of health care.", "q": "What did Treaty 6 promise to keep for the people?", "a": "A medicine chest", "w": ["A gold mine", "A railway", "A fort"]},
+ {"id": 61, "s": 5, "name": "The Buffalo", "type": "ANIMAL · PLAINS", "r": "rare", "fact": "The bison gave Plains Nations food, robes, tipi covers, tools and much more. The great herds of millions were nearly wiped out by the 1880s.", "q": "Around when were the great bison herds nearly gone?", "a": "The 1880s", "w": ["The 1700s", "The 1950s", "The 2000s"]},
+ {"id": 62, "s": 5, "name": "Payipwat", "type": "CHIEF · CREE", "r": "rare", "fact": "Payipwat (Piapot) was a Cree chief who signed Treaty 4. In 1883 he protested the new railway by camping in its path.", "q": "Which treaty did Payipwat sign?", "a": "Treaty 4", "w": ["Treaty 6", "Treaty 7", "Treaty 8"]},
+ {"id": 63, "s": 5, "name": "The Tipi", "type": "HOME · PLAINS", "r": "unc", "fact": "A tipi is a cone-shaped home of poles covered with bison hide, and later canvas. Flaps at the top could be moved to let smoke out.", "q": "What were the flaps at the top of a tipi for?", "a": "Letting smoke out", "w": ["Holding water", "Locking the door", "Catching fish"]},
+ {"id": 64, "s": 5, "name": "Nakoda", "type": "NATION", "r": "unc", "fact": "The Nakoda (Assiniboine and Stoney) speak a Siouan language. The Stoney Nakoda live in the foothills of the Rocky Mountains west of Calgary.", "q": "Where do the Stoney Nakoda live?", "a": "In the foothills west of Calgary", "w": ["On Vancouver Island", "In Labrador", "In Nunavut"]},
+ {"id": 65, "s": 5, "name": "Cradleboards", "type": "FAMILY", "r": "unc", "fact": "Cradleboards kept babies safe and snug while parents worked or travelled. Beaded covers showed a family’s love and skill.", "q": "What is a cradleboard for?", "a": "Carrying and protecting a baby", "w": ["Cooking food", "Paddling a canoe", "Storing arrows"]},
+ {"id": 66, "s": 5, "name": "Horses Come North", "type": "ANIMAL · PLAINS", "r": "unc", "fact": "Horses spread north onto the Plains in the 1700s. They changed travel and bison hunting for Nations like the Siksika and Plains Cree.", "q": "When did horses reach the northern Plains?", "a": "The 1700s", "w": ["The 1400s", "The 1900s", "The 2000s"]},
+ {"id": 67, "s": 5, "name": "Michif", "type": "LANGUAGE · MÉTIS", "r": "com", "fact": "Michif is the language of the Métis. It mixes Cree verbs with French nouns.", "q": "Michif mixes Cree with which language?", "a": "French", "w": ["Spanish", "Gaelic", "Dutch"]},
+ {"id": 68, "s": 5, "name": "Dakota in Canada", "type": "NATION", "r": "com", "fact": "Dakota people have long lived in what are now Manitoba and Saskatchewan, and more came north after 1862. Sioux Valley in Manitoba is one Dakota First Nation today.", "q": "Which of these is a Dakota First Nation in Manitoba?", "a": "Sioux Valley", "w": ["Akwesasne", "Haida Gwaii", "Wendake"]},
+ {"id": 69, "s": 5, "name": "Plains Quillwork", "type": "ART · DAKOTA", "r": "com", "fact": "Eastern Dakota artists wrapped and wove dyed porcupine quills into tight bands to decorate cradleboard covers and clothing.", "q": "What was this quilled panel made to cover?", "a": "A cradleboard", "w": ["A drum", "A canoe", "A tipi"]},
+ {"id": 70, "s": 5, "name": "Hair Pipes", "type": "ADORNMENT · PLAINS", "r": "com", "fact": "Hair pipes are long tube beads, first made of shell and later of bone. Plains people wore them in necklaces and breastplates.", "q": "What were later hair pipes made of?", "a": "Bone", "w": ["Gold", "Plastic", "Glass"]},
+ {"id": 71, "s": 6, "name": "Sedna", "type": "LEGEND · INUIT", "r": "leg", "fact": "Sedna is the Inuit mother of the sea. Stories say seals, walrus and whales came from her fingers, and hunters show respect so she will send them animals.", "q": "Which animals came from Sedna’s fingers?", "a": "Seals, walrus and whales", "w": ["Wolves and bears", "Geese and ducks", "Caribou and moose"]},
+ {"id": 72, "s": 6, "name": "Innu Painted Coat", "type": "ART · INNU", "r": "leg", "fact": "Innu women painted caribou-skin coats with designs that came to hunters in dreams. The coats honoured the caribou and helped the hunt.", "q": "Which animal’s skin were Innu painted coats made from?", "a": "Caribou", "w": ["Moose", "Seal", "Bison"]},
+ {"id": 73, "s": 6, "name": "The Amauti", "type": "CLOTHING · INUIT", "r": "rare", "fact": "An amauti is an Inuit parka with a big pouch in the back, where a mother carries her baby close and warm.", "q": "Where does a baby ride in an amauti?", "a": "In a pouch on the mother’s back", "w": ["In a sled", "In a basket", "On the father’s shoulders"]},
+ {"id": 74, "s": 6, "name": "Nunavut", "type": "LAND · 1999", "r": "rare", "fact": "Nunavut became Canada’s newest territory on April 1, 1999. Its name means our land in Inuktitut.", "q": "What does Nunavut mean?", "a": "Our land", "w": ["Big ice", "Northern lights", "Snow house"]},
+ {"id": 75, "s": 6, "name": "Eeyou Istchee", "type": "LAND · JAMES BAY CREE", "r": "rare", "fact": "Eeyou Istchee is the land of the James Bay Cree in northern Quebec. In 1975 the Cree and Inuit signed the James Bay and Northern Quebec Agreement, the first modern treaty in Canada.", "q": "Which 1975 agreement was Canada’s first modern treaty?", "a": "The James Bay and Northern Quebec Agreement", "w": ["Treaty 6", "The Two Row Wampum", "The Robinson Treaty"]},
+ {"id": 76, "s": 6, "name": "The Thule", "type": "ANCESTORS · INUIT", "r": "rare", "fact": "The Thule, ancestors of today’s Inuit, spread across the Arctic from Alaska about 1,000 years ago, hunting whales from skin boats.", "q": "Who were the Thule?", "a": "Ancestors of the Inuit", "w": ["European explorers", "Fur traders", "Viking sailors"]},
+ {"id": 77, "s": 6, "name": "Ivory Carving", "type": "ART · INUIT", "r": "unc", "fact": "Inuit and their ancestors have carved small animals from walrus ivory for over a thousand years.", "q": "What material is this little animal carved from?", "a": "Walrus ivory", "w": ["Gold", "Clay", "Glass"]},
+ {"id": 78, "s": 6, "name": "The Loon", "type": "ANIMAL · NORTH", "r": "unc", "fact": "Loons dive deep for fish and have haunting calls heard across northern lakes. They appear in many Inuit and First Nations stories.", "q": "What do loons dive for?", "a": "Fish", "w": ["Rocks", "Shells", "Seaweed"]},
+ {"id": 79, "s": 6, "name": "Caribou Hunters", "type": "ANIMAL · NASKAPI", "r": "unc", "fact": "The George River caribou herd once numbered in the hundreds of thousands. Naskapi and Innu life was built around it.", "q": "Which animal was at the centre of Naskapi life?", "a": "Caribou", "w": ["Bison", "Salmon", "Seal"]},
+ {"id": 80, "s": 6, "name": "Beaded Hoods", "type": "ART · JAMES BAY CREE", "r": "unc", "fact": "In the 1800s, Cree women of James Bay wore wool hoods covered in glass beads and ribbon, made with cloth traded at Hudson’s Bay Company posts.", "q": "Which company’s posts traded cloth and beads on James Bay?", "a": "The Hudson’s Bay Company", "w": ["Canadian Pacific Railway", "Bank of Montreal", "Ford"]},
+ {"id": 81, "s": 6, "name": "Nitassinan", "type": "LAND · INNU", "r": "com", "fact": "Nitassinan is the Innu homeland in Labrador and eastern Quebec. Innu families once followed the caribou across it each year.", "q": "Nitassinan is in Labrador and which province?", "a": "Quebec", "w": ["Ontario", "Manitoba", "Nova Scotia"]},
+ {"id": 82, "s": 6, "name": "Leggings", "type": "CLOTHING · CREE", "r": "com", "fact": "Leggings were worn over the legs for warmth and to protect against brush and snow. The bottom panels were often beaded.", "q": "Why were leggings worn?", "a": "For warmth and protection", "w": ["To swim faster", "To carry food", "To show who won a race"]},
+ {"id": 83, "s": 6, "name": "Dene Drum", "type": "MUSIC · DENE", "r": "com", "fact": "Dene drummers play large hand drums at drum dances and hand games, gatherings that can last all night.", "q": "Which game is played to Dene drumming?", "a": "Hand games", "w": ["Lacrosse", "Chess", "Hockey"]},
+ {"id": 84, "s": 6, "name": "Tahltan", "type": "NATION", "r": "com", "fact": "The Tahltan live along the Stikine River in northern British Columbia, a land of mountains, salmon and caribou.", "q": "Along which river do the Tahltan live?", "a": "The Stikine River", "w": ["The Fraser River", "The Red River", "The Grand River"]},
+ {"id": 85, "s": 7, "name": "Raven Steals the Light", "type": "LEGEND · HAIDA", "r": "leg", "fact": "In Haida and other Northwest Coast stories, Raven stole the sun, moon and stars from a box kept by a greedy chief and set them free in the sky.", "q": "What did Raven set free from the box?", "a": "The sun, moon and stars", "w": ["The salmon", "The rain", "The wind"]},
+ {"id": 86, "s": 7, "name": "The Potlatch", "type": "CEREMONY", "r": "leg", "fact": "A potlatch is a feast where families mark names, marriages and memorials and give gifts to their guests. Canada banned potlatches from 1885 to 1951.", "q": "Until which year were potlatches banned?", "a": "1951", "w": ["1867", "1900", "1999"]},
+ {"id": 87, "s": 7, "name": "Totem Poles", "type": "ART · NORTHWEST COAST", "r": "rare", "fact": "Totem poles are carved from red cedar. They show family crests and tell histories. Some hold up houses, and others honour a person who has died.", "q": "Which tree are totem poles carved from?", "a": "Red cedar", "w": ["Oak", "Birch", "Pine"]},
+ {"id": 88, "s": 7, "name": "Button Blankets", "type": "ART · HAIDA", "r": "rare", "fact": "Button blankets are wool robes with a family crest outlined in shell buttons. They shimmer in the firelight during dances.", "q": "What outlines the crest on a button blanket?", "a": "Shell buttons", "w": ["Gold coins", "Glass beads", "Feathers"]},
+ {"id": 89, "s": 7, "name": "Transformation Masks", "type": "ART · KWAKWAKA’WAKW", "r": "rare", "fact": "Kwakwaka’wakw transformation masks open with strings during a dance to reveal a second face inside, showing a being changing form.", "q": "What happens when a transformation mask opens?", "a": "A second face appears inside", "w": ["It plays music", "It lets out smoke", "It turns into a hat"]},
+ {"id": 90, "s": 7, "name": "Chief’s Frontlet", "type": "REGALIA · TSIMSHIAN", "r": "rare", "fact": "Tsimshian chiefs wore carved frontlets trimmed with sea lion whiskers. As they danced, eagle down floated out from the top as a sign of peace.", "q": "What floated out of the headdress as a sign of peace?", "a": "Eagle down", "w": ["Snow", "Seeds", "Sand"]},
+ {"id": 91, "s": 7, "name": "Bentwood Boxes", "type": "ART · NORTHWEST COAST", "r": "unc", "fact": "A bentwood box is made from one cedar plank, steamed and bent at three corners and joined at the fourth. Some held water for cooking with hot stones.", "q": "How many planks make the sides of a bentwood box?", "a": "One", "w": ["Two", "Four", "Ten"]},
+ {"id": 92, "s": 7, "name": "Salmon", "type": "ANIMAL · COAST", "r": "unc", "fact": "Salmon return every year from the ocean to the rivers where they hatched. Many Coast Nations welcome the first salmon of the season with a ceremony.", "q": "Where do salmon go to lay their eggs?", "a": "The rivers where they hatched", "w": ["The middle of the ocean", "Mountain lakes only", "Sandy beaches"]},
+ {"id": 93, "s": 7, "name": "Coast Salish Weaving", "type": "ART · SALISH", "r": "unc", "fact": "Coast Salish weavers spun mountain goat wool and the hair of a special woolly dog on spindles weighted with carved whorls like this one.", "q": "Which special animal did Coast Salish people raise for its wool?", "a": "A woolly dog", "w": ["Sheep", "Alpaca", "Bison"]},
+ {"id": 94, "s": 7, "name": "Cedar Hats", "type": "ART · NUU-CHAH-NULTH", "r": "unc", "fact": "Hats woven from cedar bark and spruce root keep off the rain. Nuu-chah-nulth whaling hats show whales and canoes.", "q": "What were these hats woven from?", "a": "Cedar bark and spruce root", "w": ["Wool and silk", "Straw and wheat", "Leather and fur"]},
+ {"id": 95, "s": 7, "name": "Haida Gwaii", "type": "LAND · HAIDA", "r": "com", "fact": "Haida Gwaii, islands of the people, is a chain of islands off the north coast of British Columbia and the home of the Haida Nation.", "q": "What does Haida Gwaii mean?", "a": "Islands of the people", "w": ["Land of rain", "Great forest", "Home of whales"]},
+ {"id": 96, "s": 7, "name": "Nuxalk", "type": "NATION", "r": "com", "fact": "The Nuxalk live at Bella Coola on the central coast of British Columbia. Their carved masks are known for bright blue-green paint.", "q": "Where on the BC coast do the Nuxalk live?", "a": "Bella Coola", "w": ["Haida Gwaii", "Victoria", "Prince Rupert"]},
+ {"id": 97, "s": 7, "name": "Salish Baskets", "type": "ART · STÓ:LŌ", "r": "com", "fact": "Stó:lō and other Salish weavers of the Fraser River made coiled cedar-root baskets so tight they could hold water.", "q": "Which river valley is home to the Stó:lō?", "a": "The Fraser River", "w": ["The Grand River", "The Red River", "The Mackenzie River"]},
+ {"id": 98, "s": 7, "name": "Berry Picking", "type": "FOOD · COAST", "r": "com", "fact": "Coast peoples picked salmonberries, huckleberries and salal berries in summer and dried them into cakes for winter.", "q": "Which of these berries grows on the BC coast?", "a": "Salal", "w": ["Mango", "Pineapple", "Kiwi"]},
+ {"id": 99, "s": 8, "name": "Red Cedar", "type": "PLANT · COAST", "r": "leg", "fact": "Coast peoples call red cedar the tree of life. Its wood makes canoes, houses and poles, and its bark is woven into clothing, mats and hats.", "q": "What do Coast peoples call the red cedar?", "a": "The tree of life", "w": ["The tree of fire", "The tree of ice", "The tree of gold"]},
+ {"id": 100, "s": 8, "name": "Coppers", "type": "MATERIAL · COAST", "r": "leg", "fact": "Coppers are shield-shaped plates of hammered copper, among the most valuable things a Northwest Coast chief could own. Some were worth thousands of blankets.", "q": "What could one copper be worth?", "a": "Thousands of blankets", "w": ["One fish", "A handful of beads", "Nothing"]},
+ {"id": 101, "s": 8, "name": "Beaver", "type": "ANIMAL", "r": "rare", "fact": "Beavers build dams that make ponds and wetlands for many other animals. Beaver fur drove the fur trade in Canada for over 200 years.", "q": "What does a beaver build across a stream?", "a": "A dam", "w": ["A bridge", "A nest", "A tunnel"]},
+ {"id": 102, "s": 8, "name": "Mountain Goat", "type": "ANIMAL · COAST", "r": "rare", "fact": "Chilkat robes are woven from mountain goat wool twisted around cedar bark. One robe could take a weaver a year to make.", "q": "How long could one Chilkat robe take to weave?", "a": "About a year", "w": ["One day", "One week", "Ten years"]},
+ {"id": 103, "s": 8, "name": "Argillite", "type": "STONE · HAIDA", "r": "rare", "fact": "Argillite is a black stone found at one place on Haida Gwaii. Only Haida people may take it, and Haida artists carve it into fine sculptures.", "q": "Who is allowed to take argillite from its quarry?", "a": "Only Haida people", "w": ["Anyone", "Only tourists", "Only miners"]},
+ {"id": 104, "s": 8, "name": "How Mosquitoes Came to Be", "type": "LEGEND · TLINGIT", "r": "rare", "fact": "In a Tlingit story, a giant who ate people was burned in a fire. His ashes blew into the air as mosquitoes, still trying to bite us.", "q": "In the story, what did the giant’s ashes turn into?", "a": "Mosquitoes", "w": ["Snowflakes", "Butterflies", "Fireflies"]},
+ {"id": 105, "s": 8, "name": "Raven", "type": "ANIMAL · COAST", "r": "unc", "fact": "Ravens are among the smartest birds. On the Northwest Coast, Raven is a trickster and creator who appears in many crests and stories.", "q": "In Northwest Coast stories, what kind of character is Raven?", "a": "A trickster and creator", "w": ["A sea monster", "A shy mouse", "A war chief"]},
+ {"id": 106, "s": 8, "name": "Walrus", "type": "ANIMAL · ARCTIC", "r": "unc", "fact": "Walrus gave Arctic peoples meat, oil, tough hide for boats, and ivory for tools and carvings.", "q": "What did walrus tusks give Arctic peoples?", "a": "Ivory", "w": ["Wool", "Wood", "Feathers"]},
+ {"id": 107, "s": 8, "name": "Halibut", "type": "ANIMAL · COAST", "r": "unc", "fact": "Halibut are huge flat fish. Coast fishers carved special wooden hooks, often with a figure to help attract the fish.", "q": "What shape is a halibut?", "a": "Flat", "w": ["Round like a ball", "Long like a snake", "Square"]},
+ {"id": 108, "s": 8, "name": "Eulachon", "type": "ANIMAL · COAST", "r": "unc", "fact": "The eulachon is a fish so oily that, when dried, it can burn like a candle. Trails used to trade its grease were called grease trails.", "q": "Why is the eulachon called the candlefish?", "a": "It is so oily it can burn", "w": ["It glows in the dark", "It is shaped like a candle", "It lives in caves"]},
+ {"id": 109, "s": 8, "name": "Spruce Root", "type": "PLANT · COAST", "r": "com", "fact": "Haida and Tlingit weavers split spruce roots into fine strands to weave baskets and hats, some so tight they hold water.", "q": "Which part of the spruce tree is woven into baskets?", "a": "The roots", "w": ["The needles", "The cones", "The sap"]},
+ {"id": 110, "s": 8, "name": "The Heart Berry", "type": "PLANT · OJIBWE", "r": "com", "fact": "In Ojibwe the strawberry is ode’imin, the heart berry, because of its shape. It is one of the first fruits of summer.", "q": "Why is the strawberry called the heart berry?", "a": "It is shaped like a heart", "w": ["It is very big", "It grows in winter", "It is blue"]},
+ {"id": 111, "s": 8, "name": "Paper Birch", "type": "PLANT · WOODLANDS", "r": "com", "fact": "Paper birch bark peels off in waterproof sheets. It was used for canoes, containers, wigwam covers and art.", "q": "What made birchbark good for canoes?", "a": "It is waterproof", "w": ["It is heavy", "It is sticky", "It glows"]},
+ {"id": 112, "s": 8, "name": "Raven and Eagle Crests", "type": "FAMILY · TLINGIT", "r": "com", "fact": "Tlingit society has two halves, Raven and Eagle (or Wolf). Everyone belongs to their mother’s side and marries someone from the other side.", "q": "Which side does a Tlingit child belong to?", "a": "Their mother’s side", "w": ["Their father’s side", "Whichever they choose", "The chief’s side"]}
+];
+const ALL_CARDS = CARDS.splice(0);
+ALL_CARDS.forEach(c=>{if(!c.s)c.s=1});
+const SERIES = [
+ {id:1,name:'Chiefs, Lands & Legends'},
+ {id:2,name:'People of the Longhouse'},
+ {id:3,name:'Dawnland'},
+ {id:4,name:'Great Lakes Nations'},
+ {id:5,name:'Prairie Nations'},
+ {id:6,name:'Peoples of the North'},
+ {id:7,name:'Pacific Coast Nations'},
+ {id:8,name:'Gifts of the Land'}
+].filter(se=>ALL_CARDS.some(c=>c.s===se.id));
+SERIES.forEach(se=>{ALL_CARDS.filter(c=>c.s===se.id).forEach((c,i)=>c.n=i+1)});
+let TOTAL=0;
+function useSeries(id){
+  const se=SERIES.find(x=>x.id===id)||SERIES[0];
+  CARDS.length=0; ALL_CARDS.filter(c=>c.s===se.id).forEach(c=>CARDS.push(c));
+  TOTAL=CARDS.length; CUR=se;
+}
+let CUR=SERIES[0];
+const byId = id => ALL_CARDS.find(c=>c.id===id);
+const KEY='turtle-island-s1-chiefs';
+const fresh = () => ({packs:2,beads:0,points:0,streak:0,miss:{},bonus:{},own:{},series:1});
+const PTS={com:10,unc:15,rare:25,leg:50}, PACK_PRICE={1:40,3:100}, SET_BONUS=100;
+let S;
+
+function load(seed){
+  if(seed && seed.own){S=seed;return}
+  try{const raw=localStorage.getItem(KEY);S=raw?JSON.parse(raw):fresh()}catch(e){S=fresh()}
+  if(!S||!S.own)S=fresh();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const unlockedCount=()=>CARDS.filter(c=>S.own[c.id]==='u').length;
+const lockedIds=()=>CARDS.filter(c=>S.own[c.id]==='l').map(c=>c.id);
+const seriesCount=id=>ALL_CARDS.filter(c=>c.s===id&&S.own[c.id]==='u').length;
+
+function bigCardHTML(c,i,dup){
+  const R=RAR[c.r],I=INFO[c.id],P=PIC[c.id],holo=c.r==='leg'||c.r==='rare';
+  return `<div class="bc ${R.cls} bc-${c.r}">
+   ${c.r==='leg'?'<span class="bc-halo" aria-hidden="true"></span>':''}
+   <div class="bc-frame">
+    <div class="bc-in">
+     <div class="bc-head"><span class="bc-num">${c.n}</span><span class="bc-names"><span class="bc-name">${c.name}</span><span class="bc-type">${c.type}</span></span><span class="bc-gem" aria-hidden="true"></span></div>
+     <div class="bc-art">${ART[c.id]}${holo?'<span class="bc-holo" aria-hidden="true"></span>':''}<span class="bc-badge ${dup?'dup':'new'}">${dup?'DOUBLE':'NEW'}</span></div>
+     <div class="bc-cap">${P.obj} · ${P.from_}</div>
+     <div class="bc-stats"><div><span>NATION</span><b>${I.nation}</b></div><div><span>ERA</span><b>${I.era}</b></div></div>
+     <p class="bc-lore">“${I.lore}”</p>
+     <div class="bc-foot"><span class="bc-rar">${R.label} <i>${R.stars}</i></span><span>${c.n} / ${TOTAL} · SERIES ${c.s}</span></div>
+    </div>
+   </div>
+  </div>`;
+}
+function backHTML(){
+  return `<span class="face back" aria-hidden="true"></span>`;
+}
+function cardHTML(c,opts={}){
+  const R=RAR[c.r];
+  const tagName = opts.button ? 'button' : 'div';
+  const attrs = opts.button ? ` type="button" data-act="${opts.act}" data-id="${c.id}" aria-label="${opts.label||c.name}"` : '';
+  return `<${tagName} class="card ${R.cls} ${opts.cls||''}"${attrs}><div class="ci">
+    <div class="ch"><span class="num">${c.n}</span><span style="display:flex;flex-direction:column;min-width:0"><span class="cn">${c.name.toUpperCase()}</span><span class="ct">${c.type}</span></span></div>
+    <div class="art">${ART[c.id]}</div>
+    <span class="cap"><b>${PIC[c.id].obj}</b> · ${PIC[c.id].from_}</span>
+    <div class="rs"><span>${R.label}</span><span>${R.stars}</span></div>
+    ${opts.fact?`<div class="fact">${c.fact}</div>`:''}
+  </div>${opts.lock?'<span class="lockbar">ANSWER TO UNLOCK</span>':''}</${tagName}>`;
+}
+
+
+function badgeSVG(size){return `<svg width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#b98a2e"/><circle cx="32" cy="32" r="25" fill="none" stroke="#241509" stroke-width="2"/><ellipse cx="32" cy="42" rx="16" ry="7" fill="#241509"/><polygon points="32,12 41,25 37,25 44,36 20,36 27,25 23,25" fill="#241509"/><rect x="30" y="34" width="4" height="6" fill="#241509"/></svg>`}
+function showCollection(){
+  const u=unlockedCount(),l=lockedIds().length;
+  openOv(`<h3 id="ovTitle">My collection</h3>
+   <p style="margin:0;color:var(--muted)">${u} unlocked · ${l} waiting for an answer · ${TOTAL-u-l} still to find. Tap a card to read it or answer its question.</p>
+   <div class="album">${CARDS.map(c=>{const st=S.own[c.id];
+     if(st==='u')return cardHTML(c,{button:true,act:'view',cls:'unl',label:`Read ${c.name}`});
+     if(st==='l')return cardHTML(c,{button:true,act:'quiz',cls:'locked',lock:true,label:`Answer the question to unlock ${c.name}`});
+     return `<div class="slot"><b>${c.n}</b><span>NOT FOUND YET</span><span style="font-weight:500;letter-spacing:0">${RAR[c.r].label.toLowerCase()}</span></div>`}).join('')}</div>
+   <div class="row">${S.packs>0?`<button class="btn" data-act="ripNow">Rip open a pack (${S.packs})</button>`:''}<button class="btn ghost" data-act="close">Close</button></div>`);
+}
+function showSetView(){
+  const u=unlockedCount(),done=u===TOTAL;
+  const next=lockedIds().length?'Answer the questions on your locked cards to unlock them and earn points for more packs.':S.packs>0?'Rip open a pack to find more cards.':CARDS.some(c=>!S.own[c.id])?'Buy a pack with your points, or craft a missing card with your wampum beads.':'';
+  openOv(`<h3 id="ovTitle">Complete the set</h3>
+   <div class="sv-head"><b style="font-variant-numeric:tabular-nums">${u} of ${TOTAL} unlocked</b><div class="meter" aria-hidden="true"><div style="width:${u/TOTAL*100}%"></div></div></div>
+   <div class="badge-big ${done?'':'locked'}">${badgeSVG(64)}<p>${done?'<b>Set complete!</b> You earned the ${esc(CUR.name)} badge. Show this screen to your teacher.':`<b>Series ${CUR.id} badge.</b> Unlock all ${TOTAL} cards to earn it. ${next}`}</p></div>
+   <ul class="sv-list">${CARDS.map(c=>{const st=S.own[c.id],R=RAR[c.r],P=PIC[c.id];
+     const thumb=st?`<span class="sv-thumb ${R.cls}"><img src="${P.src}" alt="" style="background:${P.bg};object-fit:${P.fit==='cover'?'cover':'contain'}"></span>`:`<span class="sv-thumb miss ${R.cls}">?</span>`;
+     const status=st==='u'?'<span class="sv-st ok">UNLOCKED</span>':st==='l'?`<button class="btn" data-act="quiz" data-id="${c.id}">Answer to unlock</button>`:'<span class="sv-st ms">NOT FOUND</span>';
+     return `<li class="sv-row ${R.cls}">${thumb}<span class="sv-main"><b>${st?c.name:'Card '+c.n}</b><small>${R.label} · ${st?c.type:'Keep opening packs'}</small></span>${status}</li>`}).join('')}</ul>
+   <div class="row">${S.packs>0&&!done?`<button class="btn" data-act="ripNow">Rip open a pack (${S.packs})</button>`:''}<button class="btn ghost" data-act="close">Close</button></div>`);
+}
+function updatePlaques(){const n=scene.querySelectorAll('.plq-n');if(n.length<2)return;n[0].textContent='';n[1].textContent=`${unlockedCount()}/${TOTAL}`}
+
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function renderSeries(){
+  seriesRow.innerHTML=SERIES.map(se=>{const n=ALL_CARDS.filter(c=>c.s===se.id).length,u=seriesCount(se.id);return `<button type="button" class="chip" data-act="series" data-id="${se.id}" aria-pressed="${se.id===CUR.id}"><small>SERIES ${se.id}</small><b>${esc(se.name)}</b><span>${u} of ${n} unlocked${u===n?' · complete':''}</span></button>`}).join('');
+  eyebrow.textContent=`SERIES ${CUR.id} · ${CUR.name.toUpperCase()}`;
+  const lab=document.getElementById('packSeries');if(lab){lab.textContent=CUR.id;packNum.style.display=CUR.id===1?'none':''}
+}
+function pickSeries(id){if(opening)return;S.series=id;useSeries(id);renderCredits();render();toast(`Series ${CUR.id}: ${CUR.name}. Packs now hold cards from this series.`)}
+
+function addPoints(n){
+  S.points=(S.points||0)+n;
+  const st=document.getElementById('ptsStat');
+  if(st){st.classList.remove('bump');void st.offsetWidth;st.classList.add('bump');const f=document.createElement('span');f.className='ptsfly';f.textContent='+'+n;st.appendChild(f);setTimeout(()=>f.remove(),1400)}
+}
+function buyPacks(n){
+  const price=PACK_PRICE[n];if(!price)return;
+  if((S.points||0)<price){toast(`You need ${price-(S.points||0)} more points for that.`);return}
+  S.points-=price;S.packs+=n;render();
+  toast(n===1?'You bought a pack. Rip it open!':`You bought ${n} packs. Rip them open!`);
+}
+function checkSetBonus(){
+  S.bonus=S.bonus||{};
+  if(unlockedCount()===TOTAL&&!S.bonus[CUR.id]){S.bonus[CUR.id]=1;addPoints(SET_BONUS);return SET_BONUS}
+  return 0;
+}
+function renderCredits(){credits.innerHTML=CARDS.map(c=>{const p=PIC[c.id];return `<li><b>${c.name}:</b> ${p.obj}, ${p.from_}. <a href="${p.url}" target="_blank" rel="noopener">${p.museum}</a></li>`}).join('')}
+function render(){
+  renderSeries();
+  const u=unlockedCount();
+  sPacks.textContent=S.packs; sBeads.textContent=S.beads; sPoints.textContent=S.points||0; shopPts.textContent=S.points||0;
+  document.querySelectorAll('.buy').forEach(b=>{b.disabled=(S.points||0)<PACK_PRICE[b.dataset.n]}); sSet.textContent=`${u}/${TOTAL}`;
+  openBtn.disabled = S.packs<1;
+  scene.classList.toggle('nopacks',S.packs<1);
+  openBtn.textContent = S.packs<1 ? 'No packs. Earn points to buy one' : `Rip open a pack (${S.packs} left)`;
+  // grid
+  grid.innerHTML = CARDS.map(c=>{
+    const st=S.own[c.id];
+    if(st==='u') return cardHTML(c,{button:true,act:'view',cls:'unl',label:`Read ${c.name}`});
+    if(st==='l') return cardHTML(c,{button:true,act:'quiz',cls:'locked',lock:true,label:`Answer the question to unlock ${c.name}`});
+    return `<div class="slot"><b>${c.n}</b><span>NOT FOUND YET</span><span style="font-weight:500;letter-spacing:0">${RAR[c.r].label.toLowerCase()}</span></div>`;
+  }).join('');
+  // craft
+  const missing=CARDS.filter(c=>!S.own[c.id]);
+  craft.innerHTML = missing.length ? missing.map(c=>{const cost=RAR[c.r].cost;return `<div class="crow"><div><span class="nm">${c.name}</span><small>${RAR[c.r].label}</small></div><button class="btn" data-act="craft" data-id="${c.id}" ${S.beads<cost?'disabled':''}>Craft · ${cost} beads</button></div>`}).join('') : '<p class="empty">You have found every card. Nothing left to craft.</p>';
+  updatePlaques();
+  meter.style.width=(u/TOTAL*100)+'%'; setLabel.textContent=`${u} of ${TOTAL} unlocked`;
+  doneBanner.hidden = u!==TOTAL;
+  doneBanner.innerHTML = u===TOTAL?`<div class="done"><svg width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#b98a2e"/><polygon points="32,12 42,26 37,26 45,38 19,38 27,26 22,26" fill="#241509"/><rect x="29" y="38" width="6" height="10" fill="#241509"/></svg><div style="flex:1;min-width:200px"><h2>Set complete</h2><p>You unlocked all ${TOTAL} cards of ${esc(CUR.name)}. Show your teacher to earn your Series ${CUR.id} badge.</p></div></div>`:'';
+  save();
+}
+
+function ensurePack(){
+  if(S.packs<1 && lockedIds().length===0 && unlockedCount()<TOTAL && (S.points||0)<PACK_PRICE[1]){S.packs=1;toast('The Clan Mothers sent you a new pack.')}
+}
+
+function rollRarity(){let n=Math.random()*100;for(const k of ['leg','rare','unc','com']){if((n-=RAR[k].w)<0)return k}return 'com'}
+function drawCard(){const r=rollRarity();const pool=CARDS.filter(c=>c.r===r);return pool[Math.floor(Math.random()*pool.length)]}
+
+let lastFocus=null;
+function openOv(html){lastFocus=document.activeElement;box.innerHTML=html;ov.hidden=false;box.setAttribute('tabindex','-1');box.focus({preventScroll:true})}
+function closeOv(){ov.hidden=true;box.innerHTML='';opening=false;resetRip();ensurePack();render();lastFocus&&lastFocus.focus&&lastFocus.focus()}
+
+/* ---------- the pack scene ---------- */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function nest(svg,x,y,w,h){return svg.replace('<svg ',`<svg x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice" `)}
+function miniCard(c,cx,top,rot){
+  const R=RAR[c.r], col={leg:'#b98a2e',rare:'#6f4a94',unc:'#2f6a9e',com:'#3f7350'}[c.r], tx=c.r==='leg'?'#241509':'#ffffff';
+  const x=cx-62, w=124, h=174;
+  return `<g transform="rotate(${rot} ${cx} ${top+h})">
+   <rect x="${x+3}" y="${top+5}" width="${w}" height="${h}" rx="9" fill="#000" opacity=".35"/>
+   <rect x="${x}" y="${top}" width="${w}" height="${h}" rx="9" fill="${col}"/>
+   <rect x="${x+4}" y="${top+4}" width="${w-8}" height="${h-8}" rx="6" fill="#f6efe1"/>
+   <path d="M${x+4} ${top+30} V${top+10} a6 6 0 0 1 6 -6 H${x+w-10} a6 6 0 0 1 6 6 V${top+30} Z" fill="#1d1a17"/>
+   <text x="${cx}" y="${top+21}" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="${c.name.length>13?8.5:10}" fill="#f6efe1">${c.name.toUpperCase()}</text>
+   ${nest(ART[c.id],x+4,top+30,w-8,62)}
+   <rect x="${x+4}" y="${top+92}" width="${w-8}" height="13" fill="${col}"/>
+   <text x="${x+10}" y="${top+101.5}" font-family="Alegreya Sans, sans-serif" font-weight="800" font-size="7" letter-spacing="1" fill="${tx}">${R.label}</text>
+   <text x="${x+w-10}" y="${top+101.5}" text-anchor="end" font-size="7" fill="${tx}">${R.stars}</text>
+   <g fill="#cbbfa9"><rect x="${x+12}" y="${top+114}" width="${w-24}" height="4" rx="2"/><rect x="${x+12}" y="${top+124}" width="${w-34}" height="4" rx="2"/><rect x="${x+12}" y="${top+134}" width="${w-28}" height="4" rx="2"/><rect x="${x+12}" y="${top+144}" width="${w-50}" height="4" rx="2"/></g>
+   <rect x="${x}" y="${top}" width="${w}" height="${h}" rx="9" fill="url(#cardGloss)"/>
+  </g>`;
+}
+function buildScene(){
+  const r=rng(11);
+  // pack outline
+  let zt=`M306 157`; for(let x=306,i=0;x<=694;x+=8,i++){zt+=` L${x} ${i%2?150:157}`} zt+=` L694 196 L306 196 Z`;
+  let zb=`M306 628 L694 628 L694 664`; for(let x=694,i=0;x>=306;x-=8,i++){zb+=` L${x} ${i%2?671:664}`} zb+=` Z`;
+  const body=`M312 196 C298 320 298 500 312 628 L688 628 C702 500 702 320 688 196 Z`;
+  // bead tile
+  let beads='<rect width="48" height="24" fill="#2a1a3a"/>';
+  for(let c=0;c<12;c++)for(let rr=0;rr<6;rr++){const d=Math.abs(c-5.5)/6+Math.abs(rr-2.5)/3;const f=d<0.3?'#c8402f':d<0.62?'#f4ecdc':d<0.8?'#e0b13c':'#4b2c63';beads+=`<circle cx="${c*4+2}" cy="${rr*4+2}" r="1.75" fill="${f}"/><circle cx="${c*4+1.4}" cy="${rr*4+1.4}" r=".55" fill="#fff" opacity=".55"/>`}
+  // stars
+  let stars='';for(let i=0;i<40;i++){stars+=`<circle cx="${(r()*1000).toFixed(0)}" cy="${(r()*230).toFixed(0)}" r="${(0.6+r()*1.4).toFixed(1)}" fill="#f4ecdc" opacity="${(0.25+r()*0.6).toFixed(2)}"/>`}
+  // pine lines
+  function pines(x0,x1,base,minH,maxH,fill){let s='';for(let x=x0;x<x1;x+=14+r()*16){const h=minH+r()*(maxH-minH),w=h*0.42,b=base+r()*10;s+=`<polygon points="${x},${b} ${x+w/2},${b-h} ${x+w},${b}" fill="${fill}"/><polygon points="${x+w*0.12},${b-h*0.45} ${x+w/2},${b-h*1.02} ${x+w*0.88},${b-h*0.45}" fill="${fill}"/>`}return s}
+  // crinkles
+  let crk='';for(let i=0;i<46;i++){const x=318+r()*364,y=205+r()*410,len=24+r()*90,a=(-25+r()*50)*Math.PI/180,x2=x+Math.sin(a)*len,y2=y+Math.cos(a)*len,mx=(x+x2)/2+(r()-.5)*16,my=(y+y2)/2;crk+=`<path d="M${x.toFixed(1)} ${y.toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="#fff" stroke-width="${(0.8+r()*1.6).toFixed(1)}" opacity="${(0.08+r()*0.2).toFixed(2)}" fill="none"/><path d="M${(x+2.2).toFixed(1)} ${y.toFixed(1)} Q${(mx+2.2).toFixed(1)} ${my.toFixed(1)} ${(x2+2.2).toFixed(1)} ${y2.toFixed(1)}" stroke="#3a2610" stroke-width="${(0.8+r()*1.4).toFixed(1)}" opacity="${(0.08+r()*0.16).toFixed(2)}" fill="none"/>`}
+  // embers
+  let emb='';for(let i=0;i<8;i++){emb+=`<circle class="ember" cx="${850+r()*40}" cy="${612}" r="${(1+r()*1.5).toFixed(1)}" fill="#ffd27a" style="animation-delay:${(r()*3).toFixed(2)}s"/>`}
+
+  function pine(x,b,h,fill){const w=h*0.38,t=7;let L=[],Rt=[];for(let i=1;i<=t;i++){const y=b-h+h*0.86*i/t;const a=(w/2)*(i/t)*(0.78+r()*0.44),c=(w/2)*(i/t)*(0.78+r()*0.44);L.push(`${(x-a).toFixed(1)},${y.toFixed(1)}`);Rt.push(`${(x+c).toFixed(1)},${y.toFixed(1)}`);if(i<t){L.push(`${(x-a*0.32).toFixed(1)},${(y-h*0.025).toFixed(1)}`);Rt.push(`${(x+c*0.32).toFixed(1)},${(y-h*0.025).toFixed(1)}`)}}return `<polygon points="${x},${(b-h).toFixed(1)} ${L.join(' ')} ${(x-w*0.05).toFixed(1)},${(b-h*0.13).toFixed(1)} ${(x-w*0.05).toFixed(1)},${b} ${(x+w*0.05).toFixed(1)},${b} ${(x+w*0.05).toFixed(1)},${(b-h*0.13).toFixed(1)} ${Rt.reverse().join(' ')}" fill="${fill}"/>`}
+  function forest(x0,x1,base,minH,maxH,gap,fill){let s='';for(let x=x0;x<x1;x+=gap*(0.6+r()*0.8)){s+=pine(x,base+r()*8,minH+r()*(maxH-minH),fill)}return s}
+  function ridge(base,amp,step,fill,op){let d=`M0 ${base}`;for(let x=0;x<=1000;x+=step){d+=` L${x} ${(base-amp*(0.35+r()*0.65)).toFixed(1)}`}d+=` L1000 560 L0 560 Z`;return `<path d="${d}" fill="${fill}" opacity="${op}"/>`}
+  const far1=ridge(478,70,38,'#7d4c63',.55), far2=ridge(508,46,26,'#57355a',.85);
+  const farTrees=forest(-10,1010,554,18,44,9,'#2b1f33');
+  const nearL=forest(-20,330,560,80,190,22,'#140f1a'), nearR=forest(680,1020,560,80,190,22,'#140f1a');
+  let shim='';for(let i=0;i<70;i++){const y=556+Math.pow(r(),1.4)*150;const spread=30+(y-556)*1.6;const cx=500+(r()-.5)*spread*2;const w=8+r()*(20+(y-556)*0.4);shim+=`<line x1="${(cx-w/2).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(cx+w/2).toFixed(1)}" y2="${y.toFixed(1)}" stroke="#ffd08c" stroke-width="${(1+r()*1.6).toFixed(1)}" stroke-linecap="round" opacity="${(0.15+r()*0.45).toFixed(2)}"/>`}
+  for(let i=0;i<40;i++){const y=560+r()*150,x=r()*1000,w=20+r()*70;shim+=`<line x1="${x.toFixed(0)}" y1="${y.toFixed(0)}" x2="${(x+w).toFixed(0)}" y2="${y.toFixed(0)}" stroke="#9a86b0" stroke-width="1.2" opacity="${(0.08+r()*0.15).toFixed(2)}"/>`}
+  let grass='';const tuft=(x,y,c)=>`<path d="M${x} ${y} q-2 -8 -5 -12 M${x} ${y} q1 -10 2 -15 M${x} ${y} q3 -7 7 -10" stroke="${c}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  for(let x=0;x<380;x+=5+r()*7){grass+=tuft(x.toFixed(0),(606+x*0.05+r()*3).toFixed(0),'#2c2216')}
+  for(let x=640;x<1000;x+=5+r()*7){grass+=tuft(x.toFixed(0),(600+r()*4).toFixed(0),x>760&&x<980?'#4a3118':'#2c2216')}
+  let bark='';for(let y=604,row=0;y>480;y-=13,row++){bark+=`<path d="M20 ${y} H300" stroke="#3a2717" stroke-width="2"/>`;for(let x=30+(row%2)*17;x<300;x+=34){bark+=`<path d="M${x} ${y} v-13" stroke="#3a2717" stroke-width="1.3"/>`}bark+=`<path d="M20 ${y-4} H300" stroke="#7a5638" stroke-width="1" opacity=".35"/>`}
+  const emblem=`<svg x="426" y="392" width="148" height="148" viewBox="14 14 332 332"><defs><clipPath id="emC"><circle cx="180" cy="180" r="166"/></clipPath></defs><g clip-path="url(#emC)"><rect width="360" height="360" fill="#18293a"/><circle cx="80" cy="70" r="2.5" fill="#f4ecdc"/><circle cx="290" cy="90" r="2.5" fill="#f4ecdc"/><circle cx="250" cy="40" r="2" fill="#f4ecdc"/><circle cx="110" cy="120" r="2" fill="#f4ecdc"/><rect x="0" y="290" width="360" height="70" fill="#25496a"/><path d="M20 305 q20 -6 40 0 M110 318 q20 -6 40 0 M220 308 q20 -6 40 0 M290 325 q20 -6 40 0" stroke="#4f7da3" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="90" cy="290" rx="20" ry="12" fill="#3e5f3b"/><ellipse cx="270" cy="290" rx="20" ry="12" fill="#3e5f3b"/><ellipse cx="302" cy="268" rx="22" ry="15" fill="#3e5f3b"/><circle cx="310" cy="263" r="3" fill="#18293a"/><ellipse cx="180" cy="270" rx="112" ry="44" fill="#4f7347"/><path d="M90 262 Q180 236 270 262 M120 290 L140 246 M240 290 L220 246 M180 312 L180 228" stroke="#2f4a2c" stroke-width="4" fill="none"/><path d="M180 236 L110 262 M180 236 L250 262 M180 236 L140 300 M180 236 L220 300" stroke="#f4ecdc" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="173" y="150" width="14" height="88" fill="#5a3d22"/><polygon points="180,52 214,96 196,94 230,132 206,130 246,172 114,172 154,130 130,132 164,94 146,96" fill="#2b5a3e"/><polygon points="180,52 196,74 164,74" fill="#3b7652"/><path d="M180 46 C166 34 146 30 120 36 C140 40 154 46 166 54 L176 58 L180 66 L184 58 L194 54 C206 46 220 40 240 36 C214 30 194 34 180 46 Z" fill="#f0d394"/><circle cx="180" cy="44" r="6" fill="#f4ecdc"/></g></svg>`;
+  const plaque=(i,label,icon)=>{const y=300+i*68;const act=i===0?'collection':'setview';return `<g transform="translate(744 ${y})" class="plq" data-act="${act}" tabindex="0" role="button" aria-label="${i===0?'Open my collection':'See how to complete the set'}"><g class="plq-in"><rect x="3" y="4" width="236" height="50" rx="9" fill="#000" opacity=".35"/><rect width="236" height="50" rx="9" fill="#2a1d14" stroke="#b98a3e" stroke-width="2"/><path d="M8 10 H228 M8 40 H228" stroke="#3b2a1c" stroke-width="1"/><g transform="translate(14 13)" fill="none" stroke="#f0d394" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</g><text x="54" y="31" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="${label.length>12?14:17}" fill="#f4ecdc">${label}</text><text class="plq-n" x="222" y="31" text-anchor="end" font-family="Alegreya Sans, sans-serif" font-weight="800" font-size="13" fill="#f0d394"></text></g></g>`};
+  const N=22,X0=327,W=346;const tearY=[];for(let i=0;i<=N*2;i++)tearY.push(180+r()*10);
+  const tx=i=>X0+i*W/(2*N);
+  TEAR={N,X0,W,tearY};
+  let restPts=`300,720 300,${tearY[0].toFixed(1)}`;for(let i=0;i<=2*N;i++)restPts+=` ${tx(i).toFixed(1)},${tearY[i].toFixed(1)}`;restPts+=` 700,${tearY[2*N].toFixed(1)} 700,720`;
+  let tearLine='';for(let i=0;i<=2*N;i++)tearLine+=` ${tx(i).toFixed(1)},${tearY[i].toFixed(1)}`;
+  let shadowPts=tearLine;for(let i=2*N;i>=0;i--)shadowPts+=` ${tx(i).toFixed(1)},${(tearY[i]-11).toFixed(1)}`;
+  let sliceClips='',slices='';
+  for(let k=0;k<N;k++){const xl=k===0?300:tx(2*k)-0.7,xr=k===N-1?700:tx(2*k+2)+0.7;sliceClips+=`<clipPath id="slc${k}"><polygon points="${xl.toFixed(1)},110 ${xr.toFixed(1)},110 ${xr.toFixed(1)},${tearY[2*k+2].toFixed(1)} ${tx(2*k+1).toFixed(1)},${tearY[2*k+1].toFixed(1)} ${xl.toFixed(1)},${tearY[2*k].toFixed(1)}"/></clipPath>`;slices+=`<g class="sl"><image href="pack.webp" x="327" y="146" width="346" height="519" clip-path="url(#slc${k})"/></g>`}
+  const peekCard=(x,rot,i)=>`<g transform="rotate(${rot} ${x+45} 330)"><rect class="peekFrame" x="${x}" y="205" width="90" height="126" rx="7" fill="#b98a2e"/><rect x="${x+4}" y="209" width="82" height="118" rx="5" fill="#f6efe1"/><rect x="${x+4}" y="209" width="82" height="20" fill="#1d1a17"/><text class="peekName" x="${x+45}" y="222" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="7.5" fill="#f6efe1"></text><rect class="peekBg" x="${x+4}" y="229" width="82" height="62" fill="#888"/><image class="peekImg" x="${x+4}" y="229" width="82" height="62" preserveAspectRatio="xMidYMid meet"/><rect class="peekBar" x="${x+4}" y="291" width="82" height="10" fill="#b98a2e"/><g fill="#cbbfa9"><rect x="${x+10}" y="306" width="70" height="3" rx="1.5"/><rect x="${x+10}" y="313" width="56" height="3" rx="1.5"/></g><rect x="${x+4}" y="209" width="82" height="118" rx="5" fill="url(#cardGloss)"/></g>`;
+  const peekCards=peekCard(398,-9,0)+peekCard(455,0,1)+peekCard(512,9,2);
+  scene.innerHTML=`<defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f1630"/><stop offset=".42" stop-color="#3a2b52"/><stop offset=".68" stop-color="#8b4a58"/><stop offset=".86" stop-color="#df8456"/><stop offset="1" stop-color="#f3b469"/></linearGradient>
+    <radialGradient id="sunGlow"><stop offset="0" stop-color="#ffd59a" stop-opacity=".85"/><stop offset="1" stop-color="#ffb46a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b36a5a"/><stop offset=".35" stop-color="#4a3550"/><stop offset="1" stop-color="#151b2a"/></linearGradient>
+    <linearGradient id="foil" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5e3f1a"/><stop offset=".06" stop-color="#a87a3a"/><stop offset=".17" stop-color="#f3d793"/><stop offset=".3" stop-color="#b8873f"/><stop offset=".46" stop-color="#e9c57f"/><stop offset=".6" stop-color="#a97a38"/><stop offset=".76" stop-color="#f0d08c"/><stop offset=".9" stop-color="#a5763a"/><stop offset="1" stop-color="#4e3414"/></linearGradient>
+    <linearGradient id="foilV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".25" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#2a1608" stop-opacity=".35"/></linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6dc9c"/><stop offset=".35" stop-color="#a5782f"/><stop offset=".65" stop-color="#f0d08c"/><stop offset="1" stop-color="#6e4a20"/></linearGradient>
+    <linearGradient id="cardGloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="fireGlow"><stop offset="0" stop-color="#ffb25a" stop-opacity=".75"/><stop offset="1" stop-color="#ff7a3a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="doorGlow"><stop offset="0" stop-color="#ffb35a" stop-opacity=".7"/><stop offset="1" stop-color="#ffb35a" stop-opacity="0"/></radialGradient>
+    <pattern id="ridges" width="5" height="10" patternUnits="userSpaceOnUse"><rect width="2" height="10" fill="#2a1608" opacity=".22"/><rect x="2" width="1" height="10" fill="#fff" opacity=".18"/></pattern>
+    <pattern id="beads" width="48" height="24" patternUnits="userSpaceOnUse">${beads}</pattern>
+    <clipPath id="bodyClip"><path d="${body}"/></clipPath>
+    <clipPath id="packClip"><path d="${body}"/><path d="${zt}"/><path d="${zb}"/></clipPath>
+    <filter id="blur6" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter>
+    <filter id="cloudA" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.0034 0.016" numOctaves="5" seed="4"/><feColorMatrix values="0 0 0 0 0.96  0 0 0 0 0.6  0 0 0 0 0.5  3.4 0 0 0 -1.62"/></filter>
+    <filter id="cloudB" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.0042 0.02" numOctaves="5" seed="9"/><feColorMatrix values="0 0 0 0 0.34  0 0 0 0 0.22  0 0 0 0 0.4  3.1 0 0 0 -1.36"/></filter>
+    <linearGradient id="cloudFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff"/><stop offset=".78" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <mask id="cloudMask"><rect y="40" width="1000" height="440" fill="url(#cloudFade)"/></mask>
+    <filter id="fog" x="-20%" y="-200%" width="140%" height="500%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="refl"><feGaussianBlur stdDeviation="2.2"/></filter>
+    <filter id="smoke" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
+    <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+    <radialGradient id="vig" cx=".5" cy=".55" r=".75"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient>
+    <radialGradient id="groundGlow"><stop offset="0" stop-color="#ff9a4a" stop-opacity=".55"/><stop offset="1" stop-color="#ff9a4a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="lhShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".45"/><stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#ff9a5a" stop-opacity=".18"/></linearGradient>
+    <clipPath id="lakeClip"><rect y="551" width="1000" height="170"/></clipPath>
+    <clipPath id="lhClip"><path d="M30 616 L30 556 Q160 486 290 556 L290 616 Z"/></clipPath>
+  </defs>
+  <rect width="1000" height="560" fill="url(#sky)"/>
+  ${stars}
+  <circle cx="500" cy="530" r="340" fill="url(#sunGlow)"/>
+  <g mask="url(#cloudMask)"><rect y="40" width="1000" height="440" filter="url(#cloudB)"/><rect y="150" width="1000" height="330" filter="url(#cloudA)" opacity=".9"/></g>
+  <circle cx="500" cy="538" r="44" fill="#ffe4ad"/>
+  <circle cx="500" cy="538" r="70" fill="#ffd59a" opacity=".25"/>
+  ${far1}
+  <rect x="-60" y="470" width="1120" height="50" fill="#e8a07c" opacity=".25" filter="url(#fog)"/>
+  ${far2}
+  ${farTrees}
+  <rect x="-60" y="528" width="1120" height="30" fill="#d88c70" opacity=".3" filter="url(#fog)"/>
+  <rect y="550" width="1000" height="170" fill="url(#lake)"/>
+  <g clip-path="url(#lakeClip)"><g transform="translate(0 1102) scale(1 -1)" opacity=".33" filter="url(#refl)">${far1}${far2}${farTrees}${nearL}${nearR}<circle cx="500" cy="538" r="44" fill="#ffe4ad"/></g></g>
+  ${shim}
+  ${nearL}${nearR}
+  <rect x="-60" y="545" width="1120" height="20" fill="#c98270" opacity=".22" filter="url(#fog)"/>
+  <path d="M0 606 C160 592 320 600 420 630 C470 645 530 645 580 632 C700 598 860 592 1000 602 L1000 720 L0 720 Z" fill="#16100c"/>
+  <ellipse cx="868" cy="664" rx="230" ry="52" fill="url(#groundGlow)"/>
+  <ellipse cx="160" cy="628" rx="110" ry="18" fill="url(#groundGlow)" opacity=".7"/>
+  ${grass}
+  <g>
+    <circle cx="160" cy="596" r="80" fill="url(#doorGlow)"/>
+    <path d="M30 616 L30 556 Q160 486 290 556 L290 616 Z" fill="#5c4029"/>
+    <g clip-path="url(#lhClip)">${bark}<path d="M62 540 V616 M96 524 V616 M130 512 V616 M190 512 V616 M224 524 V616 M258 540 V616" stroke="#2e1f12" stroke-width="3.5"/><rect x="20" y="480" width="290" height="140" fill="url(#lhShade)"/></g>
+    <path d="M30 616 L30 556 Q160 486 290 556 L290 616" stroke="#26180d" stroke-width="3" fill="none"/>
+    <path d="M44 548 Q160 490 276 548" stroke="#e0a06a" stroke-width="2" opacity=".45" fill="none"/>
+    <ellipse cx="110" cy="512" rx="9" ry="4" fill="#1b120a"/><ellipse cx="210" cy="512" rx="9" ry="4" fill="#1b120a"/>
+    <polygon points="146,616 174,616 196,640 124,640" fill="#ffb35a" opacity=".22"/>
+    <path d="M146 616 V580 Q160 567 174 580 V616 Z" fill="#ffb35a"/>
+    <path d="M150 616 V584 Q160 574 170 584 V616 Z" fill="#ffd690"/>
+    <path d="M110 506 q-12 -16 2 -32 q14 -16 -2 -34 q-10 -12 4 -26 M210 506 q-12 -16 2 -32 q14 -16 -2 -34 q-10 -12 4 -26" stroke="#d8cfc2" stroke-width="7" fill="none" stroke-linecap="round" opacity=".22" filter="url(#smoke)"/>
+  </g>
+  <g>
+    <circle cx="868" cy="628" r="140" fill="url(#fireGlow)"/>
+    <g fill="#3a3430"><ellipse cx="818" cy="652" rx="16" ry="9"/><ellipse cx="916" cy="652" rx="16" ry="9"/><ellipse cx="846" cy="661" rx="15" ry="8"/><ellipse cx="890" cy="661" rx="15" ry="8"/></g>
+    <g fill="#c9894e" opacity=".55"><ellipse cx="822" cy="648" rx="9" ry="3"/><ellipse cx="912" cy="648" rx="9" ry="3"/><ellipse cx="848" cy="657" rx="8" ry="2.5"/><ellipse cx="888" cy="657" rx="8" ry="2.5"/></g>
+    <path d="M826 650 L908 628 M830 628 L910 652" stroke="#4a2f1c" stroke-width="10" stroke-linecap="round"/>
+    <path d="M840 641 L896 628 M842 630 L898 645" stroke="#ff9a4a" stroke-width="2" opacity=".6"/>
+    <path class="flame" d="M868 648 C840 640 842 606 858 584 C858 602 868 604 870 592 C874 572 866 556 880 540 C878 566 900 580 896 610 C894 634 886 646 868 648 Z" fill="#ff8a3a"/>
+    <path class="flame f2" d="M868 646 C852 640 852 618 862 602 C864 614 872 614 872 604 C874 592 872 584 880 574 C882 592 892 604 888 622 C886 638 880 646 868 646 Z" fill="#ffc25a"/>
+    <path class="flame f3" d="M868 644 C860 640 860 628 866 620 C868 628 874 628 874 622 C878 630 878 640 868 644 Z" fill="#fff1b0"/>
+    ${emb}
+  </g>
+  <g fill="#1f1812"><ellipse cx="60" cy="690" rx="46" ry="20"/><ellipse cx="960" cy="700" rx="60" ry="22"/><ellipse cx="300" cy="704" rx="30" ry="12"/></g>
+  <path d="M30 680 q30 -14 60 -2" stroke="#5a4a3a" stroke-width="2" fill="none" opacity=".5"/>
+  <path d="M912 690 q40 -16 84 -2" stroke="#b07040" stroke-width="2" fill="none" opacity=".5"/>
+  <g class="plaques">
+    ${plaque(0,'COLLECT','<rect x="2" y="4" width="14" height="18" rx="2"/><path d="M9 4 L22 7 L19 24"/>')}
+    ${plaque(1,'COMPLETE SET','<path d="M2 22 V13 Q12 4 22 13 V22 Z"/><path d="M9 22 V16 H15 V22"/>')}
+  </g>
+  <ellipse cx="500" cy="680" rx="185" ry="16" fill="#000" opacity=".55" filter="url(#blur6)"/>
+  <g id="packG" class="bob">
+    <defs>
+      <clipPath id="restClip"><polygon points="${restPts}"/></clipPath>
+      ${sliceClips}
+      <clipPath id="tornClip"><rect id="tornRectEl" x="300" y="100" width="0" height="140"/></clipPath>
+      <mask id="packMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="720" style="mask-type:alpha"><image href="pack.webp" x="327" y="146" width="346" height="519"/></mask>
+    </defs>
+    <polygon points="${shadowPts}" fill="#1b0e05" clip-path="url(#tornClip)"/>
+    <g id="peek">${peekCards}</g>
+    <image href="pack.webp" x="327" y="146" width="346" height="519" clip-path="url(#restClip)"/>
+    <g id="packNum" style="display:none"><rect x="528.6" y="578.6" width="13.6" height="15.6" fill="#1c130c"/><text id="packSeries" x="535.4" y="592.2" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="14.5" fill="#e8c27f">1</text></g>
+    <polyline points="${tearLine}" fill="none" stroke="#f8e9c4" stroke-width="2.2" stroke-linejoin="round" clip-path="url(#tornClip)"/>
+    <g mask="url(#packMask)"><g clip-path="url(#restClip)"><g class="shineMove"><rect x="-220" y="120" width="110" height="600" fill="url(#shine)" opacity=".55" transform="skewX(-18)"/></g></g></g>
+    <g id="stripG">${slices}</g>
+  </g>
+  <g id="hint" pointer-events="none">
+    <text x="500" y="124" text-anchor="middle" font-family="Alegreya Sans, sans-serif" font-weight="800" font-size="19" letter-spacing="2" fill="#fff6dd" stroke="#1a1008" stroke-width="4" paint-order="stroke">SWIPE ACROSS THE TOP TO RIP IT OPEN</text>
+    <g class="hintArrow"><circle cx="372" cy="164" r="13" fill="#fff6dd" opacity=".9"/><circle cx="372" cy="164" r="22" fill="#fff6dd" opacity=".25"/><path d="M366 158 l8 6 l-8 6" stroke="#2a1608" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+  </g>
+  <rect width="1000" height="720" fill="url(#vig)" pointer-events="none"/>
+  <rect width="1000" height="720" filter="url(#grain)" opacity=".07" pointer-events="none" style="mix-blend-mode:overlay"/>`;
+}
+let TEAR=null,opening=false,tearP=0,tearDir=1,dragging=false,autoRaf=0,down=null,lastSound=0;
+const reduceMotion=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+let AC=null,soundOn=true;try{soundOn=localStorage.getItem('ti-sound')!=='off'}catch(e){}
+function audioInit(){if(!soundOn||AC)return;try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
+function ripSound(v,dur){if(!soundOn||!AC)return;try{dur=dur||0.06;const len=Math.floor(AC.sampleRate*dur);const buf=AC.createBuffer(1,len,AC.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<len;i++){d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2)*(Math.random()<0.3?1:0.35)}const src=AC.createBufferSource();src.buffer=buf;const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=1600+Math.random()*2400;f.Q.value=0.8;const g=AC.createGain();g.gain.value=0.25*v;src.connect(f);f.connect(g);g.connect(AC.destination);src.start()}catch(e){}}
+function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
+const sliceEls=()=>[...scene.querySelectorAll('.sl')];
+function applyTear(p){
+  tearP=Math.max(tearP,Math.min(1,p));
+  const {N,X0,W,tearY}=TEAR;const xt=tearDir===1?X0+tearP*W:X0+W-tearP*W;
+  sliceEls().forEach((g,k)=>{const cx=X0+(k+0.5)*W/N,ty=tearY[2*k+1],d=tearDir===1?xt-cx:cx-xt;
+    if(d>0){const lift=Math.min(d*0.3,72),ang=-tearDir*Math.min(d*0.1,20);g.setAttribute('transform',`translate(0 ${(-lift).toFixed(1)}) rotate(${ang.toFixed(1)} ${cx.toFixed(1)} ${ty.toFixed(1)})`)}else g.removeAttribute('transform')});
+  const tr=document.getElementById('tornRectEl');
+  if(tearDir===1){tr.setAttribute('x',300);tr.setAttribute('width',Math.max(0,xt-300))}else{tr.setAttribute('x',xt);tr.setAttribute('width',Math.max(0,700-xt))}
+  scene.classList.toggle('tearing',tearP>0);
+  if(tearP>=1)completeRip();
+}
+let autoActive=false;
+function startRip(){
+  if(opening||autoActive)return;
+  if(S.packs<1){toast('No packs left. Earn points and buy one in the Pack Shop.');return}
+  audioInit();
+  if(tearP===0)tearDir=1;
+  if(reduceMotion()){applyTear(1);return}
+  autoActive=true;
+  const from=tearP,t0=performance.now();
+  const step=t=>{const k=Math.min(1,(t-t0)/650),e=k*k*(3-2*k);applyTear(from+(1-from)*e);if(t-lastSound>40){ripSound(0.6);lastSound=t}if(k<1&&!opening)autoRaf=requestAnimationFrame(step);else autoActive=false};
+  autoRaf=requestAnimationFrame(step);
+}
+function completeRip(){
+  if(opening)return;opening=true;autoActive=false;cancelAnimationFrame(autoRaf);
+  S.packs--;
+  const pulls=[drawCard(),drawCard(),drawCard()];
+  const results=pulls.map(c=>{if(S.own[c.id]){S.beads+=RAR[c.r].beads;S.points=(S.points||0)+5;return {c,dup:true}}S.own[c.id]='l';return {c,dup:false}});
+  render();
+  const col={leg:'#b98a2e',rare:'#6f4a94',unc:'#2f6a9e',com:'#3f7350'};
+  const pf=scene.querySelectorAll('.peekFrame'),pb=scene.querySelectorAll('.peekBar'),pi=scene.querySelectorAll('.peekImg'),pg2=scene.querySelectorAll('.peekBg'),pn=scene.querySelectorAll('.peekName');
+  results.forEach((r,i)=>{const c=r.c,P=PIC[c.id];pf[i].setAttribute('fill',col[c.r]);pb[i].setAttribute('fill',col[c.r]);pg2[i].setAttribute('fill',P.bg);pi[i].setAttribute('href',P.src);pi[i].setAttribute('preserveAspectRatio',P.fit==='cover'?'xMidYMid slice':'xMidYMid meet');pn[i].textContent=c.name.length>16?c.name.split(' ').slice(0,2).join(' ').toUpperCase():c.name.toUpperCase()});
+  scene.style.setProperty('--fx',(tearDir*130)+'px');scene.style.setProperty('--fr',(-tearDir*28)+'deg');
+  scene.classList.add('ripped');ripSound(1.5,0.28);buzz(35);
+  setTimeout(()=>showReveal(results),reduceMotion()?0:1050);
+}
+function resetRip(){
+  scene.classList.add('noanim');scene.classList.remove('ripped','tearing');
+  tearP=0;sliceEls().forEach(g=>g.removeAttribute('transform'));
+  const tr=document.getElementById('tornRectEl');tr&&tr.setAttribute('width',0);
+  void scene.getBoundingClientRect();requestAnimationFrame(()=>requestAnimationFrame(()=>scene.classList.remove('noanim')));
+}
+function svgPt(e){const pt=scene.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(scene.getScreenCTM().inverse())}
+let ripReady=false,gestureDone=false;
+// The pack sits at x 327–673, y 130–665 in scene units; the hit area is a little larger so small fingers find it.
+const onPack=p=>p.x>310&&p.x<690&&p.y>110&&p.y<680;
+function setupRip(){
+  if(ripReady)return;ripReady=true;
+  const wrap=document.getElementById('sceneWrap');
+  wrap.addEventListener('pointerdown',e=>{
+    if(opening||ov.hidden===false)return;
+    const p=svgPt(e);if(!onPack(p))return;
+    e.preventDefault();gestureDone=false;
+    if(S.packs<1){toast('No packs left. Earn points and buy one in the Pack Shop.');gestureDone=true;return}
+    audioInit();down={x:p.x,y:p.y,moved:false};
+    if(tearP===0)tearDir=p.x<500?1:-1;
+    try{wrap.setPointerCapture(e.pointerId)}catch(_){}
+    dragging=true;scene.classList.add('dragging');
+  });
+  wrap.addEventListener('pointermove',e=>{
+    const p=svgPt(e);
+    if(!dragging){wrap.style.cursor=onPack(p)?'grab':'';return}
+    if(opening)return;
+    if(Math.hypot(p.x-down.x,p.y-down.y)>6)down.moved=true;
+    if(!down.moved)return;
+    wrap.style.cursor='grabbing';
+    const prog=tearDir===1?(p.x-TEAR.X0)/TEAR.W:(TEAR.X0+TEAR.W-p.x)/TEAR.W;
+    const before=tearP;applyTear(prog);const now=performance.now();
+    if(tearP-before>0.004&&now-lastSound>35){ripSound(Math.min(1,(tearP-before)*25+0.3));buzz(6);lastSound=now}
+  });
+  const end=()=>{if(!dragging)return;dragging=false;gestureDone=true;wrap.style.cursor='';scene.classList.remove('dragging');if(opening)return;if(!down.moved||tearP>0.7)startRip()};
+  wrap.addEventListener('pointerup',end);wrap.addEventListener('pointercancel',end);wrap.addEventListener('lostpointercapture',end);
+  // Backup for browsers that send only a click
+  wrap.addEventListener('click',e=>{if(gestureDone){gestureDone=false;return}if(onPack(svgPt(e)))startRip()});
+}
+function showReveal(results){
+  const newOnes=results.filter(r=>!r.dup).map(r=>r.c.id);
+  openOv(`<h3 id="ovTitle">You opened a pack</h3>
+   <p style="margin:0;color:var(--muted)">Tap a card to turn it over. Rare and legendary cards shine.</p>
+   <div class="reveal">${results.map((r,i)=>`<div class="rv"><button type="button" class="flip" data-act="flip" aria-label="Turn over card ${i+1}"><span class="inner">${backHTML()}<span class="face front">${bigCardHTML(r.c,i,r.dup)}</span></span></button><div class="tag ${r.dup?'dup':'new'}" data-tag hidden>${r.dup?`Double · +5 points, +${RAR[r.c.r].beads} beads`:`New ${RAR[r.c.r].label.toLowerCase()} card`}</div></div>`).join('')}</div>
+   <div class="row">${newOnes.length?`<button class="btn" data-act="startQuiz" data-ids="${newOnes.join(',')}">Answer the new ${newOnes.length===1?'card':'cards'}</button>`:''}<button class="btn ghost" data-act="close">${newOnes.length?'Later':'Done'}</button></div>`);
+  // auto flip with a gentle stagger
+  const flips=[...box.querySelectorAll('.flip')];
+  flips.forEach((f,i)=>setTimeout(()=>flipCard(f),650+i*550));
+}
+function flipCard(f){if(f.classList.contains('open'))return;f.classList.add('open');const bc=f.querySelector('.bc');if(bc&&(bc.classList.contains('bc-leg')||bc.classList.contains('bc-rare'))){ripSound(bc.classList.contains('bc-leg')?0.9:0.5,0.12);buzz(bc.classList.contains('bc-leg')?[30,40,30]:20)}const t=f.parentElement.querySelector('[data-tag]');t&&(t.hidden=false)}
+
+let queue=[];
+function startQuiz(ids){queue=ids.slice();nextQuiz()}
+function nextQuiz(){
+  const id=queue.shift(); if(id==null){closeOv();return}
+  const c=byId(id);
+  const opts=[c.a,...c.w].sort(()=>Math.random()-.5);
+  openOv(`<h3 id="ovTitle">Unlock ${c.name}</h3>
+   <div class="quiz">${cardHTML(c,{cls:'locked'})}
+    <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+      <p class="q">${c.q}</p>
+      <div class="opts">${opts.map(o=>`<button class="opt" data-act="answer" data-id="${c.id}" data-o="${encodeURIComponent(o)}">${o}</button>`).join('')}</div>
+      <div id="fb" aria-live="polite"></div>
+      <div class="row" id="qNav"></div>
+    </div></div>`);
+}
+function answer(btn){
+  const c=byId(+btn.dataset.id); const pick=decodeURIComponent(btn.dataset.o); const ok=pick===c.a;
+  box.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(decodeURIComponent(b.dataset.o)===c.a&&ok)b.classList.add('right')});
+  btn.classList.add(ok?'right':'wrong');
+  const fb=box.querySelector('#fb');
+  if(ok){
+    S.own[c.id]='u';
+    S.miss=S.miss||{};
+    const base=PTS[c.r],first=S.miss[c.id]?0:5,streak=Math.min(20,(S.streak||0)*5);
+    S.streak=(S.streak||0)+1;
+    const total=base+first+streak;addPoints(total);
+    const bonus=checkSetBonus();
+    const cardEl=box.querySelector('.card'); cardEl.classList.remove('locked');
+    fb.innerHTML=`<div class="fb good"><b>Unlocked! +${total+bonus} points.</b>${c.fact}<div class="pts"><span>${RAR[c.r].label.toLowerCase()} +${base}</span>${first?'<span>first try +5</span>':''}${streak?`<span>streak +${streak}</span>`:''}${bonus?`<span>set complete +${bonus}</span>`:''}</div></div>`;
+  } else {
+    S.miss=S.miss||{};S.miss[c.id]=(S.miss[c.id]||0)+1;S.streak=0;
+    fb.innerHTML=`<div class="fb bad"><b>Not this time. Read the teaching and try again later.</b>${c.fact}</div>`;
+  }
+  render();
+  box.querySelector('#qNav').innerHTML = queue.length ? `<button class="btn" data-act="next">Next card</button><button class="btn ghost" data-act="close">Close</button>` : `<button class="btn" data-act="close">Back to the longhouse</button>`;
+  box.querySelector('#qNav .btn').focus();
+}
+
+function craftCard(id){
+  const c=byId(id),cost=RAR[c.r].cost;
+  if(S.beads<cost||S.own[id])return;
+  S.beads-=cost;S.own[id]='l';render();
+  toast(`You crafted ${c.name}. Answer its question to unlock it.`);
+}
+function viewCard(id){const c=byId(id);openOv(`<h3 id="ovTitle">${c.name}</h3><div style="max-width:320px;width:100%;margin:0 auto">${cardHTML(c,{fact:true})}</div><div class="row"><button class="btn" data-act="close">Close</button></div>`)}
+
+let tt;function toast(m){toastEl.textContent=m;toastEl.hidden=false;clearTimeout(tt);tt=setTimeout(()=>toastEl.hidden=true,3200)}
+const toastEl=document.getElementById('toast');
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]'); if(!b)return;
+  const a=b.dataset.act,id=+b.dataset.id;
+  if(a==='buy')buyPacks(+b.dataset.n);
+  else if(a==='series')pickSeries(id);
+  else if(a==='collection')showCollection();
+  else if(a==='setview')showSetView();
+  else if(a==='ripNow'){queue=[];closeOv();if(!reduceMotion())scene.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(startRip,reduceMotion()?0:450)}
+  else if(a==='view')viewCard(id);
+  else if(a==='quiz')startQuiz([id]);
+  else if(a==='craft')craftCard(id);
+  else if(a==='flip')flipCard(b);
+  else if(a==='startQuiz')startQuiz(b.dataset.ids.split(',').map(Number));
+  else if(a==='answer')answer(b);
+  else if(a==='next')nextQuiz();
+  else if(a==='close'){queue=[];closeOv()}
+  else if(a==='confirmReset'){S=fresh();render();resetWrap.innerHTML=resetDefault;toast('New game started. You have 2 packs.')}
+  else if(a==='cancelReset'){resetWrap.innerHTML=resetDefault}
+});
+openBtn.addEventListener('click',()=>{if(!reduceMotion())scene.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(startRip,reduceMotion()?0:350)});
+soundBtn.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem('ti-sound',soundOn?'on':'off')}catch(e){}soundBtn.textContent=soundOn?'Sound: on':'Sound: off';soundBtn.setAttribute('aria-pressed',soundOn);if(soundOn)audioInit()});
+soundBtn.textContent=soundOn?'Sound: on':'Sound: off';soundBtn.setAttribute('aria-pressed',soundOn);
+const resetDefault=resetWrap.innerHTML;
+resetWrap.addEventListener('click',e=>{if(e.target.id==='resetBtn'){resetWrap.innerHTML=`<span style="display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap">Erase your collection? <button class="btn" data-act="confirmReset" style="min-height:40px;padding:8px 14px;font-size:13px">Yes, start over</button><button class="btn ghost" data-act="cancelReset" style="min-height:40px;padding:8px 14px;font-size:13px">Keep it</button></span>`}});
+document.addEventListener('keydown',e=>{const pq=e.target.closest&&e.target.closest('.plq');if(pq&&(e.key==='Enter'||e.key===' ')){e.preventDefault();pq.dispatchEvent(new MouseEvent('click',{bubbles:true}));return}if(e.key==='Escape'&&!ov.hidden){queue=[];closeOv()}});
+
+function start(seed){
+  load(seed&&seed.S);if(!S.series)S.series=1;useSeries(S.series);if(S.points==null)S.points=0;if(S.streak==null)S.streak=0;S.miss=S.miss||{};S.bonus=S.bonus||{};buildScene();renderCredits();ensurePack();render();
+  setupRip();
+}
+window.claude?.hot?.snapshot?.(()=>({S}));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+
+</body>
+</html>
